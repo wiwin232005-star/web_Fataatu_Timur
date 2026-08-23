@@ -1,0 +1,15 @@
+{
+  "name": "Desa Fataatu Timur",
+  "short_name": "Fataatu Timur",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#176b52",
+  "icons": [
+    {
+      "src": "assets/img/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
