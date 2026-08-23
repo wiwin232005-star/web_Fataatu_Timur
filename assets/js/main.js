@@ -1,53 +1,7 @@
-/* Skrip publik: tombol ke atas, galeri modal, validasi form. */
-(function () {
-  'use strict';
-
-  // Tombol kembali ke atas
-  var toTop = document.getElementById('toTop');
-  if (toTop) {
-    window.addEventListener('scroll', function () {
-      toTop.classList.toggle('show', window.scrollY > 400);
-    });
-    toTop.addEventListener('click', function () {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
-  }
-
-  // Pratinjau galeri di dalam modal
-  var modalEl = document.getElementById('galeriModal');
-  if (modalEl) {
-    var modalImg = modalEl.querySelector('[data-modal-img]');
-    var modalTitle = modalEl.querySelector('[data-modal-title]');
-    var modalDesc = modalEl.querySelector('[data-modal-desc]');
-    document.querySelectorAll('[data-galeri]').forEach(function (item) {
-      item.addEventListener('click', function (ev) {
-        ev.preventDefault();
-        modalImg.src = item.getAttribute('data-src');
-        modalImg.alt = item.getAttribute('data-title') || 'Foto galeri desa';
-        modalTitle.textContent = item.getAttribute('data-title') || '';
-        modalDesc.textContent = item.getAttribute('data-desc') || '';
-        bootstrap.Modal.getOrCreateInstance(modalEl).show();
-      });
-    });
-  }
-
-  // Validasi bawaan Bootstrap
-  document.querySelectorAll('.needs-validation').forEach(function (form) {
-    form.addEventListener('submit', function (ev) {
-      if (!form.checkValidity()) {
-        ev.preventDefault();
-        ev.stopPropagation();
-      }
-      form.classList.add('was-validated');
-    }, false);
-  });
-
-  // Konfirmasi hapus
-  document.querySelectorAll('[data-confirm]').forEach(function (el) {
-    el.addEventListener('click', function (ev) {
-      if (!window.confirm(el.getAttribute('data-confirm'))) {
-        ev.preventDefault();
-      }
-    });
-  });
+(function(){'use strict';
+const toTop=document.getElementById('toTop');if(toTop){addEventListener('scroll',()=>toTop.classList.toggle('show',scrollY>400));toTop.onclick=()=>scrollTo({top:0,behavior:'smooth'});}
+document.querySelectorAll('.needs-validation').forEach(f=>f.addEventListener('submit',e=>{if(!f.checkValidity()){e.preventDefault();e.stopPropagation()}else{e.preventDefault();const s=document.getElementById('contactStatus');if(s)s.classList.remove('d-none')}f.classList.add('was-validated')}));
+const gm=document.getElementById('galeriModal');if(gm){const im=gm.querySelector('[data-modal-img]'),t=gm.querySelector('[data-modal-title]'),d=gm.querySelector('[data-modal-desc]');document.querySelectorAll('[data-galeri]').forEach(x=>x.onclick=e=>{e.preventDefault();im.src=x.dataset.src;im.alt=x.dataset.title||'';t.textContent=x.dataset.title||'';d.textContent=x.dataset.desc||'';bootstrap.Modal.getOrCreateInstance(gm).show()})}
+document.querySelectorAll('[data-news-title]').forEach(x=>x.onclick=()=>{const m=document.getElementById('newsModal');if(m){document.getElementById('newsTitle').textContent=x.dataset.newsTitle;document.getElementById('newsBody').textContent=x.dataset.newsBody;bootstrap.Modal.getOrCreateInstance(m).show()}});
+const ns=document.getElementById('newsSearch'),nf=document.getElementById('newsFilter');function filterNews(){document.querySelectorAll('.news-card').forEach(c=>{const q=(ns?.value||'').toLowerCase(),cat=nf?.value||'',ok=c.innerText.toLowerCase().includes(q)&&(!cat||c.dataset.category===cat);c.classList.toggle('d-none',!ok)})}ns?.addEventListener('input',filterNews);nf?.addEventListener('change',filterNews);
 })();

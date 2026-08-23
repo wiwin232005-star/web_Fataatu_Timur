@@ -271,3 +271,8 @@ body.admin-body { background: #f2f5f3; }
   background: linear-gradient(135deg, var(--hijau-900), var(--biru-800));
 }
 .login-card { width: 100%; max-width: 420px; background: #fff; border-radius: 18px; box-shadow: 0 20px 60px rgba(0,0,0,.3); padding: 2rem; }
+
+/* Static HTML adaptation */
+.gallery-item img{transition:transform .25s ease}.gallery-item:hover img{transform:scale(1.02)}
+.placeholder-note{font-size:.82rem;color:var(--teks-lembut)}
+.prose p{max-width:850px}
