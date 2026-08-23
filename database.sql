@@ -43,3 +43,28 @@ CREATE TABLE IF NOT EXISTS faqs (
  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
  q VARCHAR(500) NOT NULL, a TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
+
+
+CREATE TABLE IF NOT EXISTS messages (
+ id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+ name VARCHAR(150) NOT NULL, email VARCHAR(190) DEFAULT '', subject VARCHAR(255) DEFAULT '', message TEXT NOT NULL,
+ status ENUM('baru','dibaca','dibalas') NOT NULL DEFAULT 'baru', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS page_content (
+ slug VARCHAR(80) PRIMARY KEY,
+ title VARCHAR(255) NOT NULL,
+ subtitle TEXT,
+ content LONGTEXT,
+ updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+INSERT INTO page_content(slug,title,subtitle,content) VALUES
+('profil','Profil Desa','Profil umum Desa Fataatu Timur.','Silakan isi profil resmi desa di menu Admin → Konten Halaman.'),
+('sejarah','Sejarah','Sejarah singkat berdirinya dan perkembangan Desa Fataatu Timur.','Silakan isi sejarah resmi desa di menu Admin → Konten Halaman.'),
+('visi-misi','Visi & Misi','Arah pembangunan dan pelayanan Desa Fataatu Timur.','Silakan isi visi dan misi resmi desa di menu Admin → Konten Halaman.'),
+('struktur','Struktur Pemerintahan','Susunan aparatur Pemerintah Desa Fataatu Timur.','Silakan isi nama dan jabatan aparatur di menu Admin → Konten Halaman.'),
+('transparansi','Transparansi Desa','Informasi transparansi dan dokumen publik desa.','Silakan isi informasi transparansi desa di menu Admin → Konten Halaman.'),
+('hasil-bumi','Hasil Bumi','Komoditas unggulan masyarakat Desa Fataatu Timur.','Silakan isi daftar hasil bumi di menu Admin → Konten Halaman.'),
+('wisata','Wisata Desa','Potensi wisata Desa Fataatu Timur.','Silakan isi informasi wisata di menu Admin → Konten Halaman.'),
+('sambutan','Sambutan Kepala Desa','Pesan Kepala Desa untuk masyarakat.','Silakan isi sambutan Kepala Desa di menu Admin → Konten Halaman.')
+ON DUPLICATE KEY UPDATE slug=VALUES(slug);

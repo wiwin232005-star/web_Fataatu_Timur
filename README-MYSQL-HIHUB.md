@@ -1,27 +1,10 @@
-# Versi MySQL — Desa Fataatu Timur
+# Panduan versi database MySQL
 
-## Login Admin
-Username: admin
-Password: admin123
+1. Import database.sql ke MySQL.
+2. Isi api/config.php sesuai database hosting.
+3. Buka admin.html dan login admin/admin123.
+4. **Konten Halaman**: isi Sejarah, Profil, Visi & Misi, Struktur, Transparansi, Hasil Bumi, Wisata, dan Sambutan.
+5. **Pesan Masuk**: pesan dari halaman Kontak dan pertanyaan dari FAQ muncul di sini.
+6. FAQ dikelola dari menu FAQ di Admin.
 
-## Instalasi di HiHub/hosting
-1. Upload semua file ZIP ke hosting.
-2. Buat database MySQL bernama `fataatu_timur`.
-3. Buka phpMyAdmin → pilih database → Import `database.sql`.
-4. Buka `api/config.php`.
-5. Isi:
-   - $host = host MySQL dari HiHub
-   - $db = fataatu_timur
-   - $user = username MySQL
-   - $pass = password MySQL
-6. Simpan.
-7. Buka `https://domain-anda/admin.html`.
-8. Login.
-9. Coba tambah berita.
-10. Buka website publik. Data berasal dari database.
-
-## Catatan penting
-- Pastikan hosting mendukung PHP dan MySQL/MariaDB.
-- Jika HiHub hanya menerima hosting HTML statis tanpa PHP/MySQL, versi ini tidak dapat menjalankan backend; gunakan hosting/server yang mendukung PHP + MySQL.
-- Untuk produksi, password admin sebaiknya dipindahkan ke tabel users dengan password_hash/password_verify. Versi demo ini memakai kredensial tetap agar mudah diuji.
-- Upload foto sebagai base64 ke MySQL cocok untuk demo kecil. Untuk produksi sebaiknya simpan file di folder uploads/object storage dan database hanya menyimpan URL.
+Jika perubahan Admin tersimpan tetapi halaman tidak berubah, pastikan Anda membuka website melalui URL hosting (http/https), bukan file:// dari komputer, dan pastikan database.sql terbaru sudah di-import.
