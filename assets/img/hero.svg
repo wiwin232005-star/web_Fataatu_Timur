@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img" aria-label="Ilustrasi pemandangan desa">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b6fae"/><stop offset="1" stop-color="#8fc7e8"/></linearGradient>
+    <linearGradient id="hill1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2e9c67"/><stop offset="1" stop-color="#14533a"/></linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#sky)"/>
+  <circle cx="1320" cy="180" r="90" fill="#fbf7ee" opacity=".85"/>
+  <path d="M0 520 L260 360 L470 520 L700 330 L980 540 L1240 380 L1600 560 V900 H0Z" fill="#14568a" opacity=".55"/>
+  <path d="M0 640 L300 470 L560 640 L860 500 L1180 660 L1600 520 V900 H0Z" fill="url(#hill1)"/>
+  <g fill="#0f3d2c" opacity=".5">
+    <path d="M180 900V740l90-60 90 60v160z"/><path d="M1300 900V760l80-55 80 55v140z"/>
+  </g>
+  <g stroke="#0f3d2c" stroke-width="10" opacity=".45">
+    <path d="M760 900V720"/><path d="M900 900V740"/>
+  </g>
+  <ellipse cx="760" cy="710" rx="80" ry="52" fill="#14533a" opacity=".5"/>
+  <ellipse cx="900" cy="730" rx="70" ry="46" fill="#14533a" opacity=".5"/>
+</svg>

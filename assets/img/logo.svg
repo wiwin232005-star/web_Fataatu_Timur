@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="Logo Desa Fataatu Timur">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#218456"/><stop offset="1" stop-color="#14568a"/></linearGradient></defs>
+  <path d="M64 6 116 28v40c0 30-22 47-52 54C34 115 12 98 12 68V28z" fill="url(#g)"/>
+  <path d="M64 14 108 33v35c0 25-18 39-44 45-26-6-44-20-44-45V33z" fill="#fbf7ee" opacity=".18"/>
+  <circle cx="64" cy="52" r="15" fill="#f4ecdc"/>
+  <path d="M64 40c6 5 8 12 0 24-8-12-6-19 0-24z" fill="#2e9c67"/>
+  <rect x="34" y="78" width="60" height="7" rx="3.5" fill="#f4ecdc"/>
+  <rect x="42" y="90" width="44" height="6" rx="3" fill="#f4ecdc" opacity=".8"/>
+</svg>
