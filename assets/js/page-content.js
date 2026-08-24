@@ -1,1 +1,2 @@
-document.addEventListener("DOMContentLoaded",async()=>{try{const j=await (await fetch("api/public.php")).json();const p=j.data?.pages?.[document.body.dataset.page];if(!p)return;const t=document.querySelector("[data-page-title]"),s=document.querySelector("[data-page-subtitle]"),c=document.querySelector("[data-page-content]");if(t)t.textContent=p.title;if(s)s.textContent=p.subtitle;if(c)c.innerHTML=String(p.content||"").replace(/\n/g,"<br>")}catch(e){console.warn(e)}});
+// Legacy compatibility: the GitHub Pages version uses Supabase through supabase-site.js.
+// This file intentionally does not call a PHP API.
