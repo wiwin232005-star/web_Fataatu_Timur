@@ -1,1600 +1,1955 @@
 <!doctype html>
 <html lang="id">
+
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>Admin Dashboard · Desa Fataatu Timur</title>
+<meta charset="utf-8">
 
-    <link rel="icon" href="assets/img/logo.svg">
+<meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+>
 
-    <!-- Bootstrap -->
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-    >
+<title>Admin Dashboard · Desa Fataatu Timur</title>
 
-    <!-- Bootstrap Icons -->
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-        rel="stylesheet"
-    >
+<link
+    rel="icon"
+    href="assets/img/logo.svg"
+>
 
-    <!-- CSS Website -->
-    <link href="assets/css/style.css" rel="stylesheet">
+<link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+>
 
-    <style>
-        :root {
-            --green-dark: #123f32;
-            --green: #198754;
-            --green-light: #eaf5ef;
-            --border: #e2ebe6;
-            --bg: #f4f8f6;
-        }
+<link
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    rel="stylesheet"
+>
 
-        * {
-            box-sizing: border-box;
-        }
+<link
+    href="assets/css/style.css"
+    rel="stylesheet"
+>
 
-        body {
-            margin: 0;
-            background: var(--bg);
-            color: #1d2a25;
-        }
 
-        /* =========================
-           SIDEBAR
-        ========================= */
+<style>
 
-        .side {
-            position: fixed;
-            inset: 0 auto 0 0;
-            width: 270px;
-            background: var(--green-dark);
-            color: #fff;
-            padding: 16px;
-            z-index: 1100;
-            overflow-y: auto;
-        }
+body{
+    background:#f4f8f6;
+}
 
-        .side a {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #dce9e4;
-            text-decoration: none;
-            padding: 10px 11px;
-            border-radius: 10px;
-            margin: 2px 0;
-            font-size: .93rem;
-            transition: .2s ease;
-        }
 
-        .side a:hover,
-        .side a.active {
-            background: rgba(255,255,255,.12);
-            color: #fff;
-        }
+/* =========================================================
+   SIDEBAR
+========================================================= */
 
-        .side-title {
-            font-size: .72rem;
-            text-transform: uppercase;
-            letter-spacing: .08em;
-            color: #9fc2b4;
-            margin: 18px 8px 6px;
-        }
+.side{
 
-        .side-logo {
-            width: 42px;
-            height: 42px;
-            object-fit: contain;
-        }
+    position:fixed;
 
-        /* =========================
-           MAIN
-        ========================= */
+    inset:0 auto 0 0;
 
-        .main {
-            margin-left: 270px;
-            min-height: 100vh;
-        }
+    width:270px;
 
-        .top {
-            height: 70px;
-            background: #fff;
-            border-bottom: 1px solid var(--border);
-            position: sticky;
-            top: 0;
-            z-index: 900;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 24px;
-        }
+    background:#123f32;
 
-        .wrap {
-            padding: 24px;
-        }
+    color:#fff;
 
-        /* =========================
-           CARD
-        ========================= */
+    padding:16px;
 
-        .cardx {
-            background: #fff;
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 8px 24px rgba(0,0,0,.03);
-        }
+    z-index:1000;
 
-        .metric {
-            font-size: 1.65rem;
-            font-weight: 800;
-            color: var(--green-dark);
-            margin-top: 4px;
-        }
+    overflow:auto;
 
-        .section-title {
-            font-weight: 800;
-        }
+}
 
-        .hidden {
-            display: none !important;
-        }
 
-        .truncate {
-            max-width: 330px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+.side a{
 
-        .table td,
-        .table th {
-            vertical-align: middle;
-        }
+    display:flex;
 
-        /* =========================
-           LOGIN
-        ========================= */
+    gap:10px;
 
-        .login-bg {
-            min-height: 70vh;
-            display: grid;
-            place-items: center;
-        }
+    align-items:center;
 
-        .login-logo {
-            width: 76px;
-            height: 76px;
-            object-fit: contain;
-        }
+    color:#dce9e4;
 
-        /* =========================
-           MOBILE
-        ========================= */
+    text-decoration:none;
 
-        .mobile-menu {
-            display: none;
-        }
+    padding:9px 11px;
 
-        .side-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,.5);
-            z-index: 1050;
-        }
+    border-radius:10px;
 
-        /* =========================
-           TOAST
-        ========================= */
+    margin:2px 0;
 
-        .toastx {
-            position: fixed;
-            right: 20px;
-            bottom: 20px;
-            z-index: 3000;
-            max-width: 360px;
-        }
+    font-size:.93rem;
 
-        /* =========================
-           IMAGE
-        ========================= */
+}
 
-        .img-preview {
-            width: 100%;
-            height: 180px;
-            object-fit: cover;
-            border-radius: 12px;
-            background: #eef4f1;
-        }
 
-        .gallery-card {
-            overflow: hidden;
-            border-radius: 14px;
-            border: 1px solid var(--border);
-            background: #fff;
-        }
+.side a:hover,
+.side a.active{
 
-        .gallery-card img {
-            width: 100%;
-            height: 190px;
-            object-fit: cover;
-        }
+    background:#ffffff18;
 
-        /* =========================
-           FORM
-        ========================= */
+    color:#fff;
 
-        .form-control,
-        .form-select {
-            border-radius: 10px;
-        }
+}
 
-        .btn {
-            border-radius: 10px;
-        }
 
-        /* =========================
-           MOBILE
-        ========================= */
+.main{
 
-        @media (max-width: 900px) {
+    margin-left:270px;
 
-            .side {
-                transform: translateX(-100%);
-                transition: transform .25s ease;
-            }
+}
 
-            .side.open {
-                transform: translateX(0);
-            }
 
-            .side-overlay {
-                display: none;
-            }
+.top{
 
-            .side-overlay.show {
-                display: block;
-            }
+    height:70px;
 
-            .main {
-                margin-left: 0;
-            }
+    background:#fff;
 
-            .wrap {
-                padding: 14px;
-            }
+    border-bottom:1px solid #e1eae5;
 
-            .top {
-                padding: 0 14px;
-            }
+    position:sticky;
 
-            .mobile-menu {
-                display: inline-flex !important;
-                align-items: center;
-                justify-content: center;
-            }
-        }
-    </style>
+    top:0;
+
+    z-index:900;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    padding:0 24px;
+
+}
+
+
+.wrap{
+
+    padding:24px;
+
+}
+
+
+.cardx{
+
+    background:#fff;
+
+    border:1px solid #e2ebe6;
+
+    border-radius:16px;
+
+    padding:20px;
+
+    box-shadow:0 8px 24px #00000008;
+
+}
+
+
+.metric{
+
+    font-size:1.65rem;
+
+    font-weight:800;
+
+    color:#123f32;
+
+}
+
+
+.hidden{
+
+    display:none!important;
+
+}
+
+
+.section-title{
+
+    font-weight:800;
+
+}
+
+
+.table td,
+.table th{
+
+    vertical-align:middle;
+
+}
+
+
+.truncate{
+
+    max-width:330px;
+
+    white-space:nowrap;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+}
+
+
+.side-title{
+
+    font-size:.72rem;
+
+    text-transform:uppercase;
+
+    letter-spacing:.08em;
+
+    color:#9fc2b4;
+
+    margin:16px 8px 5px;
+
+}
+
+
+.login-bg{
+
+    min-height:70vh;
+
+    display:grid;
+
+    place-items:center;
+
+}
+
+
+.toastx{
+
+    position:fixed;
+
+    right:20px;
+
+    bottom:20px;
+
+    z-index:3000;
+
+}
+
+
+.img-preview{
+
+    width:100%;
+
+    height:180px;
+
+    object-fit:cover;
+
+    border-radius:12px;
+
+    background:#eef4f1;
+
+}
+
+
+.potensi-card{
+
+    height:100%;
+
+    border:1px solid #e2ebe6;
+
+    border-radius:16px;
+
+    overflow:hidden;
+
+    background:#fff;
+
+    box-shadow:0 5px 18px #00000008;
+
+}
+
+
+.potensi-card img{
+
+    width:100%;
+
+    height:210px;
+
+    object-fit:cover;
+
+}
+
+
+.potensi-body{
+
+    padding:16px;
+
+}
+
+
+.potensi-title{
+
+    font-weight:800;
+
+    color:#123f32;
+
+}
+
+
+.potensi-description{
+
+    color:#66756f;
+
+    font-size:.9rem;
+
+    line-height:1.7;
+
+}
+
+
+.empty-box{
+
+    padding:30px;
+
+    text-align:center;
+
+    border:1px dashed #cbd9d3;
+
+    border-radius:14px;
+
+    color:#71827b;
+
+}
+
+
+.preview-large{
+
+    width:100%;
+
+    max-height:300px;
+
+    object-fit:cover;
+
+    border-radius:14px;
+
+}
+
+
+.admin-section{
+
+    display:none;
+
+}
+
+
+.admin-section.active{
+
+    display:block;
+
+}
+
+
+@media(max-width:900px){
+
+    .side{
+
+        transform:translateX(-100%);
+
+        transition:.2s;
+
+    }
+
+    .side.open{
+
+        transform:none;
+
+    }
+
+    .main{
+
+        margin-left:0;
+
+    }
+
+    .wrap{
+
+        padding:14px;
+
+    }
+
+    .top{
+
+        padding:0 14px;
+
+    }
+
+    .mobile-menu{
+
+        display:inline-flex!important;
+
+    }
+
+    .side-overlay{
+
+        display:block!important;
+
+    }
+
+}
+
+
+.mobile-menu{
+
+    display:none;
+
+}
+
+
+.side-overlay{
+
+    display:none;
+
+    position:fixed;
+
+    inset:0;
+
+    background:#0005;
+
+    z-index:999;
+
+}
+
+</style>
+
 </head>
+
 
 <body>
 
-<!-- =====================================================
-     MOBILE OVERLAY
-===================================================== -->
 
-<div class="side-overlay" id="overlay"></div>
+<div
+    class="side-overlay"
+    id="overlay"
+></div>
 
 
-<!-- =====================================================
+<!-- =========================================================
      SIDEBAR
-===================================================== -->
+========================================================= -->
 
-<aside class="side" id="side">
+<aside
+    class="side"
+    id="side"
+>
 
-    <!-- Logo -->
-    <div class="d-flex align-items-center gap-2 px-1 pb-3 border-bottom border-light border-opacity-10">
+
+    <div
+        class="d-flex align-items-center gap-2 px-1 pb-3 border-bottom border-light border-opacity-10"
+    >
 
         <img
             src="assets/img/logo.svg"
-            class="side-logo"
-            alt="Logo Desa"
+            width="42"
+            alt="Logo"
         >
 
         <div>
+
             <b>Admin Desa</b>
+
             <small class="d-block text-white-50">
                 Fataatu Timur
             </small>
+
         </div>
 
     </div>
 
 
-    <!-- UTAMA -->
     <div class="side-title">
         Utama
     </div>
 
+
     <nav id="nav">
 
-        <a href="#dashboard" data-target="dashboard">
+
+        <a
+            href="#dashboard"
+            data-target="dashboard"
+            class="active"
+        >
+
             <i class="bi bi-grid"></i>
-            <span>Dashboard</span>
+
+            Dashboard
+
         </a>
 
-        <a href="#pages" data-target="pages">
+
+        <a
+            href="#pages"
+            data-target="pages"
+        >
+
             <i class="bi bi-file-text"></i>
-            <span>Profil & Sejarah</span>
+
+            Profil & Sejarah
+
         </a>
 
-        <a href="#pages" data-target="pages">
+
+        <a
+            href="#pages"
+            data-target="pages"
+        >
+
             <i class="bi bi-bullseye"></i>
-            <span>Visi Misi</span>
+
+            Visi Misi
+
         </a>
 
-        <a href="#pages" data-target="pages">
+
+        <a
+            href="#pages"
+            data-target="pages"
+        >
+
             <i class="bi bi-people"></i>
-            <span>Pemerintahan</span>
+
+            Pemerintahan
+
         </a>
 
-        <a href="#settings" data-target="settings">
+
+        <a
+            href="#settings"
+            data-target="settings"
+        >
+
             <i class="bi bi-bar-chart"></i>
-            <span>Data Desa</span>
+
+            Data Desa
+
         </a>
 
-
-        <!-- KONTEN -->
 
         <div class="side-title">
             Konten
         </div>
 
-        <a href="#potentials" data-target="potentials">
+
+        <!-- POTENSI -->
+
+        <a
+            href="#potentials"
+            data-target="potentials"
+        >
+
             <i class="bi bi-tree"></i>
-            <span>Potensi</span>
+
+            Potensi
+
         </a>
 
-        <a href="#news" data-target="news">
+
+        <!-- WISATA -->
+
+        <a
+            href="#wisata"
+            data-target="wisata"
+        >
+
+            <i class="bi bi-geo-alt"></i>
+
+            Wisata
+
+        </a>
+
+
+        <a
+            href="#news"
+            data-target="news"
+        >
+
             <i class="bi bi-newspaper"></i>
-            <span>Berita</span>
+
+            Berita
+
         </a>
 
-        <a href="#agenda" data-target="agenda">
+
+        <a
+            href="#agenda"
+            data-target="agenda"
+        >
+
             <i class="bi bi-calendar-event"></i>
-            <span>Agenda</span>
+
+            Agenda
+
         </a>
 
-        <a href="#gallery" data-target="gallery">
+
+        <a
+            href="#gallery"
+            data-target="gallery"
+        >
+
             <i class="bi bi-images"></i>
-            <span>Galeri</span>
+
+            Galeri
+
         </a>
 
-        <a href="#services" data-target="services">
+
+        <a
+            href="#services"
+            data-target="services"
+        >
+
             <i class="bi bi-ui-checks"></i>
-            <span>Layanan</span>
+
+            Layanan
+
         </a>
 
-        <a href="#documents" data-target="documents">
+
+        <a
+            href="#documents"
+            data-target="documents"
+        >
+
             <i class="bi bi-folder2-open"></i>
-            <span>Transparansi</span>
+
+            Transparansi
+
         </a>
 
-        <a href="#faqs" data-target="faqs">
+
+        <a
+            href="#faqs"
+            data-target="faqs"
+        >
+
             <i class="bi bi-question-circle"></i>
-            <span>FAQ</span>
+
+            FAQ
+
         </a>
 
-        <a href="#messages" data-target="messages">
+
+        <a
+            href="#messages"
+            data-target="messages"
+        >
+
             <i class="bi bi-envelope"></i>
-            <span>Pesan Masuk</span>
+
+            Pesan Masuk
+
         </a>
 
-
-        <!-- SISTEM -->
 
         <div class="side-title">
             Sistem
         </div>
 
-        <a href="#settings" data-target="settings">
+
+        <a
+            href="#settings"
+            data-target="settings"
+        >
+
             <i class="bi bi-gear"></i>
-            <span>Pengaturan Website</span>
+
+            Pengaturan Website
+
         </a>
 
-        <a href="#admins" data-target="admins">
+
+        <a
+            href="#admins"
+            data-target="admins"
+        >
+
             <i class="bi bi-shield-lock"></i>
-            <span>Manajemen Admin</span>
+
+            Manajemen Admin
+
         </a>
+
 
     </nav>
 
 
-    <hr class="border-light border-opacity-10">
+    <hr>
 
 
-    <!-- WEBSITE -->
     <a href="index.html">
+
         <i class="bi bi-globe2"></i>
-        <span>Lihat Website</span>
+
+        Lihat Website
+
     </a>
 
 
-    <!-- LOGOUT -->
-    <a href="#" id="logout">
+    <a
+        href="#"
+        id="logout"
+    >
+
         <i class="bi bi-box-arrow-right"></i>
-        <span>Logout</span>
+
+        Logout
+
     </a>
+
 
 </aside>
 
 
-<!-- =====================================================
+<!-- =========================================================
      MAIN
-===================================================== -->
+========================================================= -->
 
 <div class="main">
 
-    <!-- TOPBAR -->
 
-    <header class="top">
+<header class="top">
 
-        <div class="d-flex align-items-center gap-3">
 
-            <button
-                class="btn btn-light mobile-menu"
-                id="menu"
-                type="button"
-            >
-                <i class="bi bi-list fs-5"></i>
-            </button>
+    <button
+        class="btn btn-light mobile-menu"
+        id="menu"
+    >
 
-            <div>
-                <b>ADMIN DASHBOARD</b>
+        <i class="bi bi-list"></i>
 
-                <div class="small text-muted">
-                    Desa Fataatu Timur · GitHub Pages + Supabase
-                </div>
-            </div>
+    </button>
+
+
+    <div>
+
+        <b>
+            ADMIN DASHBOARD
+        </b>
+
+        <div class="small text-muted">
+
+            Desa Fataatu Timur · GitHub Pages + Supabase
 
         </div>
 
+    </div>
 
-        <span
-            id="status"
-            class="badge text-bg-secondary"
-        >
-            Belum login
-        </span>
 
-    </header>
+    <span
+        id="status"
+        class="badge text-bg-secondary"
+    >
 
+        Belum login
 
-    <!-- CONTENT -->
+    </span>
 
-    <main class="wrap">
 
+</header>
 
-        <!-- CONFIG WARNING -->
 
-        <div
-            id="configWarn"
-            class="alert alert-warning hidden"
-            role="alert"
-        >
-            <b>Supabase belum dikonfigurasi.</b>
+<main class="wrap">
 
-            <div class="small mt-1">
-                Pastikan file
-                <code>supabase/config.js</code>
-                sudah berisi Project URL dan Publishable Key.
-            </div>
-        </div>
 
+<div
+    id="configWarn"
+    class="alert alert-warning hidden"
+>
 
-        <!-- =================================================
-             LOGIN
-        ================================================== -->
+    <b>
+        Supabase belum dikonfigurasi.
+    </b>
 
-        <section
-            id="login"
-            class="cardx login-bg mx-auto"
-            style="max-width:460px"
-        >
-
-            <div class="w-100">
-
-                <div class="text-center">
-
-                    <img
-                        src="assets/img/logo.svg"
-                        class="login-logo"
-                        alt="Logo Desa"
-                    >
-
-                    <h1 class="h4 mt-3">
-                        Login Administrator
-                    </h1>
-
-                    <p class="text-muted">
-                        Gunakan akun yang dibuat di Supabase Authentication.
-                    </p>
-
-                </div>
-
-
-                <form id="loginForm">
-
-                    <div class="mb-3">
-
-                        <label
-                            for="email"
-                            class="form-label"
-                        >
-                            Email
-                        </label>
-
-                        <input
-                            id="email"
-                            type="email"
-                            class="form-control"
-                            autocomplete="email"
-                            required
-                        >
-
-                    </div>
-
-
-                    <div class="mb-3">
-
-                        <label
-                            for="password"
-                            class="form-label"
-                        >
-                            Password
-                        </label>
-
-                        <input
-                            id="password"
-                            type="password"
-                            class="form-control"
-                            autocomplete="current-password"
-                            required
-                        >
-
-                    </div>
-
-
-                    <button
-                        type="submit"
-                        class="btn btn-success w-100"
-                    >
-                        <i class="bi bi-box-arrow-in-right me-1"></i>
-                        Masuk
-                    </button>
-
-
-                    <div
-                        id="loginErr"
-                        class="text-danger small mt-3"
-                    ></div>
-
-                </form>
-
-            </div>
-
-        </section>
-
-
-        <!-- =================================================
-             APP
-        ================================================== -->
-
-        <div id="app" class="hidden">
-
-
-            <!-- =================================================
-                 DASHBOARD
-            ================================================== -->
-
-            <section
-                id="dashboard"
-                class="mb-4"
-            >
-
-                <div class="d-flex justify-content-between align-items-end mb-3">
-
-                    <div>
-
-                        <h1 class="h3 section-title mb-1">
-                            Dashboard
-                        </h1>
-
-                        <p class="text-muted mb-0">
-                            Ringkasan data website desa.
-                        </p>
-
-                    </div>
-
-
-                    <button
-                        class="btn btn-outline-success btn-sm"
-                        id="refresh"
-                        type="button"
-                    >
-                        <i class="bi bi-arrow-clockwise me-1"></i>
-                        Refresh
-                    </button>
-
-                </div>
-
-
-                <div class="row g-3">
-
-
-                    <!-- PENDUDUK -->
-
-                    <div class="col-6 col-xl-3">
-
-                        <div class="cardx">
-
-                            <small>
-                                Penduduk
-                            </small>
-
-                            <div
-                                id="mPop"
-                                class="metric"
-                            >
-                                0
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- BERITA -->
-
-                    <div class="col-6 col-xl-3">
-
-                        <div class="cardx">
-
-                            <small>
-                                Berita
-                            </small>
-
-                            <div
-                                id="mNews"
-                                class="metric"
-                            >
-                                0
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- AGENDA -->
-
-                    <div class="col-6 col-xl-3">
-
-                        <div class="cardx">
-
-                            <small>
-                                Agenda
-                            </small>
-
-                            <div
-                                id="mAgenda"
-                                class="metric"
-                            >
-                                0
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- GALERI -->
-
-                    <div class="col-6 col-xl-3">
-
-                        <div class="cardx">
-
-                            <small>
-                                Galeri
-                            </small>
-
-                            <div
-                                id="mGallery"
-                                class="metric"
-                            >
-                                0
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- POTENSI -->
-
-                    <div class="col-6 col-xl-3">
-
-                        <div class="cardx">
-
-                            <small>
-                                Potensi
-                            </small>
-
-                            <div
-                                id="mPot"
-                                class="metric"
-                            >
-                                0
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- DOKUMEN -->
-
-                    <div class="col-6 col-xl-3">
-
-                        <div class="cardx">
-
-                            <small>
-                                Dokumen
-                            </small>
-
-                            <div
-                                id="mDocs"
-                                class="metric"
-                            >
-                                0
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- PESAN -->
-
-                    <div class="col-6 col-xl-3">
-
-                        <div class="cardx">
-
-                            <small>
-                                Pesan Baru
-                            </small>
-
-                            <div
-                                id="mMsg"
-                                class="metric"
-                            >
-                                0
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- FAQ -->
-
-                    <div class="col-6 col-xl-3">
-
-                        <div class="cardx">
-
-                            <small>
-                                FAQ
-                            </small>
-
-                            <div
-                                id="mFaq"
-                                class="metric"
-                            >
-                                0
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </section>
-
-
-            <!-- =================================================
-                 PAGES
-            ================================================== -->
-
-            <section
-                id="pages"
-                class="cardx mb-4"
-            >
-
-                <div>
-
-                    <h2 class="h5 section-title mb-1">
-                        Profil, Sejarah, Visi Misi & Pemerintahan
-                    </h2>
-
-                    <p class="text-muted small mb-0">
-                        Semua isi halaman publik dapat diubah dari sini.
-                    </p>
-
-                </div>
-
-
-                <div
-                    id="pageForms"
-                    class="mt-3"
-                ></div>
-
-            </section>
-
-
-            <!-- =================================================
-                 POTENSI
-            ================================================== -->
-
-            <section
-                id="potentials"
-                class="cardx mb-4"
-            >
-
-                <div class="d-flex justify-content-between align-items-center">
-
-                    <div>
-
-                        <h2 class="h5 section-title mb-1">
-                            Potensi
-                        </h2>
-
-                        <small class="text-muted">
-                            CRUD potensi desa.
-                        </small>
-
-                    </div>
-
-
-                    <button
-                        class="btn btn-success btn-sm"
-                        type="button"
-                        onclick="openEditor('potentials')"
-                    >
-                        <i class="bi bi-plus-lg me-1"></i>
-                        Tambah
-                    </button>
-
-                </div>
-
-
-                <div
-                    id="potList"
-                    class="table-responsive mt-3"
-                ></div>
-
-            </section>
-
-
-            <!-- =================================================
-                 BERITA
-            ================================================== -->
-
-            <section
-                id="news"
-                class="cardx mb-4"
-            >
-
-                <div class="d-flex justify-content-between align-items-center">
-
-                    <div>
-
-                        <h2 class="h5 section-title mb-1">
-                            Berita
-                        </h2>
-
-                        <small class="text-muted">
-                            CRUD berita desa.
-                        </small>
-
-                    </div>
-
-
-                    <button
-                        class="btn btn-success btn-sm"
-                        type="button"
-                        onclick="openEditor('news')"
-                    >
-                        <i class="bi bi-plus-lg me-1"></i>
-                        Tambah
-                    </button>
-
-                </div>
-
-
-                <div
-                    id="newsList"
-                    class="table-responsive mt-3"
-                ></div>
-
-            </section>
-
-
-            <!-- =================================================
-                 AGENDA
-            ================================================== -->
-
-            <section
-                id="agenda"
-                class="cardx mb-4"
-            >
-
-                <div class="d-flex justify-content-between align-items-center">
-
-                    <div>
-
-                        <h2 class="h5 section-title mb-1">
-                            Agenda
-                        </h2>
-
-                        <small class="text-muted">
-                            CRUD agenda kegiatan.
-                        </small>
-
-                    </div>
-
-
-                    <button
-                        class="btn btn-success btn-sm"
-                        type="button"
-                        onclick="openEditor('agenda')"
-                    >
-                        <i class="bi bi-plus-lg me-1"></i>
-                        Tambah
-                    </button>
-
-                </div>
-
-
-                <div
-                    id="agendaList"
-                    class="table-responsive mt-3"
-                ></div>
-
-            </section>
-
-
-            <!-- =================================================
-                 GALERI
-            ================================================== -->
-
-            <section
-                id="gallery"
-                class="cardx mb-4"
-            >
-
-                <div class="d-flex justify-content-between align-items-center">
-
-                    <div>
-
-                        <h2 class="h5 section-title mb-1">
-                            Galeri
-                        </h2>
-
-                        <small class="text-muted">
-                            Upload foto ke Supabase Storage.
-                        </small>
-
-                    </div>
-
-
-                    <button
-                        class="btn btn-success btn-sm"
-                        type="button"
-                        onclick="openEditor('gallery')"
-                    >
-                        <i class="bi bi-plus-lg me-1"></i>
-                        Tambah
-                    </button>
-
-                </div>
-
-
-                <div
-                    id="galleryList"
-                    class="row g-3 mt-1"
-                ></div>
-
-            </section>
-
-
-            <!-- =================================================
-                 LAYANAN
-            ================================================== -->
-
-            <section
-                id="services"
-                class="cardx mb-4"
-            >
-
-                <div class="d-flex justify-content-between align-items-center">
-
-                    <div>
-
-                        <h2 class="h5 section-title mb-1">
-                            Layanan Desa
-                        </h2>
-
-                        <small class="text-muted">
-                            CRUD layanan publik.
-                        </small>
-
-                    </div>
-
-
-                    <button
-                        class="btn btn-success btn-sm"
-                        type="button"
-                        onclick="openEditor('services')"
-                    >
-                        <i class="bi bi-plus-lg me-1"></i>
-                        Tambah
-                    </button>
-
-                </div>
-
-
-                <div
-                    id="serviceList"
-                    class="table-responsive mt-3"
-                ></div>
-
-            </section>
-
-
-            <!-- =================================================
-                 TRANSPARANSI
-            ================================================== -->
-
-            <section
-                id="documents"
-                class="cardx mb-4"
-            >
-
-                <div class="d-flex justify-content-between align-items-center">
-
-                    <div>
-
-                        <h2 class="h5 section-title mb-1">
-                            Transparansi / Dokumen
-                        </h2>
-
-                        <small class="text-muted">
-                            Upload dan kelola dokumen.
-                        </small>
-
-                    </div>
-
-
-                    <button
-                        class="btn btn-success btn-sm"
-                        type="button"
-                        onclick="openEditor('documents')"
-                    >
-                        <i class="bi bi-plus-lg me-1"></i>
-                        Tambah
-                    </button>
-
-                </div>
-
-
-                <div
-                    id="docList"
-                    class="table-responsive mt-3"
-                ></div>
-
-            </section>
-
-
-            <!-- =================================================
-                 FAQ
-            ================================================== -->
-
-            <section
-                id="faqs"
-                class="cardx mb-4"
-            >
-
-                <div class="d-flex justify-content-between align-items-center">
-
-                    <div>
-
-                        <h2 class="h5 section-title mb-1">
-                            FAQ
-                        </h2>
-
-                        <small class="text-muted">
-                            CRUD pertanyaan dan jawaban.
-                        </small>
-
-                    </div>
-
-
-                    <button
-                        class="btn btn-success btn-sm"
-                        type="button"
-                        onclick="openEditor('faqs')"
-                    >
-                        <i class="bi bi-plus-lg me-1"></i>
-                        Tambah
-                    </button>
-
-                </div>
-
-
-                <div
-                    id="faqListAdmin"
-                    class="table-responsive mt-3"
-                ></div>
-
-            </section>
-
-
-            <!-- =================================================
-                 PESAN MASUK
-            ================================================== -->
-
-            <section
-                id="messages"
-                class="cardx mb-4"
-            >
-
-                <div class="d-flex justify-content-between align-items-center">
-
-                    <div>
-
-                        <h2 class="h5 section-title mb-1">
-                            Pesan Masuk
-                        </h2>
-
-                        <small class="text-muted">
-                            Pesan dari FAQ dan Kontak.
-                        </small>
-
-                    </div>
-
-
-                    <button
-                        class="btn btn-outline-success btn-sm"
-                        id="reloadMessages"
-                        type="button"
-                    >
-                        <i class="bi bi-arrow-clockwise me-1"></i>
-                        Muat Ulang
-                    </button>
-
-                </div>
-
-
-                <div
-                    id="messageList"
-                    class="table-responsive mt-3"
-                ></div>
-
-            </section>
-
-
-            <!-- =================================================
-                 PENGATURAN
-            ================================================== -->
-
-            <section
-                id="settings"
-                class="cardx mb-4"
-            >
-
-                <h2 class="h5 section-title">
-                    Data Desa & Pengaturan Website
-                </h2>
-
-                <p class="text-muted small">
-                    Informasi ini digunakan otomatis oleh website publik.
-                </p>
-
-
-                <form
-                    id="settingsForm"
-                    class="row g-3"
-                >
-
-                    <div class="col-md-6">
-
-                        <label
-                            for="sname"
-                            class="form-label"
-                        >
-                            Nama Desa
-                        </label>
-
-                        <input
-                            id="sname"
-                            class="form-control"
-                        >
-
-                    </div>
-
-
-                    <div class="col-md-6">
-
-                        <label
-                            for="sloc"
-                            class="form-label"
-                        >
-                            Lokasi
-                        </label>
-
-                        <input
-                            id="sloc"
-                            class="form-control"
-                        >
-
-                    </div>
-
-
-                    <div class="col-md-6">
-
-                        <label
-                            for="shead"
-                            class="form-label"
-                        >
-                            Kepala Desa
-                        </label>
-
-                        <input
-                            id="shead"
-                            class="form-control"
-                        >
-
-                    </div>
-
-
-                    <div class="col-md-6">
-
-                        <label
-                            for="sarea"
-                            class="form-label"
-                        >
-                            Luas Wilayah
-                        </label>
-
-                        <input
-                            id="sarea"
-                            class="form-control"
-                        >
-
-                    </div>
-
-
-                    <div class="col-md-3">
-
-                        <label
-                            for="spop"
-                            class="form-label"
-                        >
-                            Penduduk
-                        </label>
-
-                        <input
-                            id="spop"
-                            type="number"
-                            class="form-control"
-                        >
-
-                    </div>
-
-
-                    <div class="col-md-3">
-
-                        <label
-                            for="skk"
-                            class="form-label"
-                        >
-                            KK
-                        </label>
-
-                        <input
-                            id="skk"
-                            type="number"
-                            class="form-control"
-                        >
-
-                    </div>
-
-
-                    <div class="col-md-3">
-
-                        <label
-                            for="sdusun"
-                            class="form-label"
-                        >
-                            Dusun
-                        </label>
-
-                        <input
-                            id="sdusun"
-                            type="number"
-                            class="form-control"
-                        >
-
-                    </div>
-
-
-                    <div class="col-md-3">
-
-                        <label
-                            for="sap"
-                            class="form-label"
-                        >
-                            Aparatur
-                        </label>
-
-                        <input
-                            id="sap"
-                            type="number"
-                            class="form-control"
-                        >
-
-                    </div>
-
-
-                    <div class="col-md-6">
-
-                        <label
-                            for="semail"
-                            class="form-label"
-                        >
-                            Email Resmi
-                        </label>
-
-                        <input
-                            id="semail"
-                            type="email"
-                            class="form-control"
-                        >
-
-                    </div>
-
-
-                    <div class="col-md-6">
-
-                        <label
-                            for="sphone"
-                            class="form-label"
-                        >
-                            Telepon
-                        </label>
-
-                        <input
-                            id="sphone"
-                            class="form-control"
-                        >
-
-                    </div>
-
-
-                    <div class="col-md-9">
-
-                        <label
-                            for="saddress"
-                            class="form-label"
-                        >
-                            Alamat Kantor Desa
-                        </label>
-
-                        <input
-                            id="saddress"
-                            class="form-control"
-                        >
-
-                    </div>
-
-
-                    <div class="col-md-3">
-
-                        <label
-                            for="spostal"
-                            class="form-label"
-                        >
-                            Kode Pos
-                        </label>
-
-                        <input
-                            id="spostal"
-                            class="form-control"
-                        >
-
-                    </div>
-
-
-                    <div class="col-12">
-
-                        <label
-                            for="shours"
-                            class="form-label"
-                        >
-                            Jam Pelayanan
-                        </label>
-
-                        <input
-                            id="shours"
-                            class="form-control"
-                            placeholder="Contoh: Senin–Jumat, 08.00–15.00"
-                        >
-
-                    </div>
-
-
-                    <div class="col-12">
-
-                        <button
-                            class="btn btn-success"
-                            type="submit"
-                        >
-                            <i class="bi bi-save me-1"></i>
-                            Simpan Pengaturan
-                        </button>
-
-                    </div>
-
-                </form>
-
-            </section>
-
-
-            <!-- =================================================
-                 MANAJEMEN ADMIN
-            ================================================== -->
-
-            <section
-                id="admins"
-                class="cardx mb-4"
-            >
-
-                <h2 class="h5 section-title">
-                    Manajemen Admin
-                </h2>
-
-                <p class="text-muted small">
-                    Buat akun pengguna terlebih dahulu di
-                    <b>Supabase → Authentication → Users</b>,
-                    lalu masukkan emailnya di bawah untuk menjadikannya Admin.
-                </p>
-
-
-                <form
-                    id="adminAddForm"
-                    class="row g-2 mb-3"
-                >
-
-                    <div class="col-md-4">
-
-                        <input
-                            id="aemail"
-                            type="email"
-                            class="form-control"
-                            placeholder="Email user Supabase"
-                            required
-                        >
-
-                    </div>
-
-
-                    <div class="col-md-3">
-
-                        <input
-                            id="aname"
-                            class="form-control"
-                            placeholder="Nama Admin"
-                        >
-
-                    </div>
-
-
-                    <div class="col-md-3">
-
-                        <select
-                            id="arole"
-                            class="form-select"
-                        >
-
-                            <option value="admin">
-                                Admin
-                            </option>
-
-                            <option value="superadmin">
-                                Superadmin
-                            </option>
-
-                        </select>
-
-                    </div>
-
-
-                    <div class="col-md-2">
-
-                        <button
-                            class="btn btn-success w-100"
-                            type="submit"
-                        >
-                            <i class="bi bi-person-plus me-1"></i>
-                            Tambah
-                        </button>
-
-                    </div>
-
-                </form>
-
-
-                <div
-                    id="adminList"
-                    class="table-responsive"
-                ></div>
-
-            </section>
-
-        </div>
-
-    </main>
+    Isi
+    <code>supabase-config.js</code>
+    dengan Project URL dan Publishable/anon key.
 
 </div>
 
 
-<!-- =====================================================
-     MODAL CRUD
-===================================================== -->
+<!-- =========================================================
+     LOGIN
+========================================================= -->
+
+<section
+    id="login"
+    class="cardx login-bg mx-auto"
+    style="max-width:460px"
+>
+
+
+    <div class="w-100">
+
+
+        <div class="text-center">
+
+
+            <img
+                src="assets/img/logo.svg"
+                width="76"
+                alt="Logo"
+            >
+
+
+            <h1 class="h4 mt-3">
+
+                Login Administrator
+
+            </h1>
+
+
+            <p class="text-muted">
+
+                Gunakan akun yang dibuat di Supabase Authentication.
+
+            </p>
+
+
+        </div>
+
+
+        <form id="loginForm">
+
+
+            <label class="form-label">
+
+                Email
+
+            </label>
+
+
+            <input
+                id="email"
+                type="email"
+                class="form-control mb-3"
+                required
+            >
+
+
+            <label class="form-label">
+
+                Password
+
+            </label>
+
+
+            <input
+                id="password"
+                type="password"
+                class="form-control mb-3"
+                required
+            >
+
+
+            <button
+                class="btn btn-success w-100"
+            >
+
+                <i class="bi bi-box-arrow-in-right me-1"></i>
+
+                Masuk
+
+            </button>
+
+
+            <div
+                id="loginErr"
+                class="text-danger small mt-3"
+            ></div>
+
+
+        </form>
+
+
+    </div>
+
+
+</section>
+
+
+<!-- =========================================================
+     APP
+========================================================= -->
+
+<div
+    id="app"
+    class="hidden"
+>
+
+
+<!-- =========================================================
+     DASHBOARD
+========================================================= -->
+
+<section
+    id="dashboard"
+    class="mb-4 admin-section active"
+>
+
+
+    <div class="d-flex justify-content-between align-items-end mb-3">
+
+        <div>
+
+            <h1 class="h3 section-title mb-1">
+
+                Dashboard
+
+            </h1>
+
+            <p class="text-muted mb-0">
+
+                Ringkasan data website desa.
+
+            </p>
+
+        </div>
+
+
+        <button
+            class="btn btn-outline-success btn-sm"
+            id="refresh"
+        >
+
+            <i class="bi bi-arrow-clockwise me-1"></i>
+
+            Refresh
+
+        </button>
+
+    </div>
+
+
+    <div class="row g-3">
+
+
+        <div class="col-6 col-xl-3">
+
+            <div class="cardx">
+
+                <small>Penduduk</small>
+
+                <div
+                    id="mPop"
+                    class="metric"
+                >
+                    0
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-6 col-xl-3">
+
+            <div class="cardx">
+
+                <small>Berita</small>
+
+                <div
+                    id="mNews"
+                    class="metric"
+                >
+                    0
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-6 col-xl-3">
+
+            <div class="cardx">
+
+                <small>Agenda</small>
+
+                <div
+                    id="mAgenda"
+                    class="metric"
+                >
+                    0
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-6 col-xl-3">
+
+            <div class="cardx">
+
+                <small>Galeri</small>
+
+                <div
+                    id="mGallery"
+                    class="metric"
+                >
+                    0
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-6 col-xl-3">
+
+            <div class="cardx">
+
+                <small>Potensi</small>
+
+                <div
+                    id="mPot"
+                    class="metric"
+                >
+                    0
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-6 col-xl-3">
+
+            <div class="cardx">
+
+                <small>Wisata</small>
+
+                <div
+                    id="mWisata"
+                    class="metric"
+                >
+                    0
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-6 col-xl-3">
+
+            <div class="cardx">
+
+                <small>Dokumen</small>
+
+                <div
+                    id="mDocs"
+                    class="metric"
+                >
+                    0
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-6 col-xl-3">
+
+            <div class="cardx">
+
+                <small>Pesan Baru</small>
+
+                <div
+                    id="mMsg"
+                    class="metric"
+                >
+                    0
+                </div>
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+</section>
+
+
+<!-- =========================================================
+     PAGES
+========================================================= -->
+
+<section
+    id="pages"
+    class="cardx mb-4 admin-section"
+>
+
+
+    <div>
+
+        <h2 class="h5 section-title mb-1">
+
+            Profil, Sejarah, Visi Misi & Pemerintahan
+
+        </h2>
+
+
+        <p class="text-muted small mb-0">
+
+            Semua isi halaman publik dapat diubah dari sini.
+
+        </p>
+
+    </div>
+
+
+    <div
+        id="pageForms"
+        class="mt-3"
+    ></div>
+
+
+</section>
+
+
+<!-- =========================================================
+     POTENSI
+========================================================= -->
+
+<section
+    id="potentials"
+    class="cardx mb-4 admin-section"
+>
+
+
+    <div class="d-flex justify-content-between align-items-center">
+
+
+        <div>
+
+            <h2 class="h5 section-title">
+
+                Potensi Desa
+
+            </h2>
+
+
+            <small class="text-muted">
+
+                Kelola hasil bumi dan potensi Desa Fataatu Timur.
+
+            </small>
+
+        </div>
+
+
+        <button
+            class="btn btn-success btn-sm"
+            onclick="openEditor('potentials')"
+        >
+
+            <i class="bi bi-plus-lg me-1"></i>
+
+            Tambah Potensi
+
+        </button>
+
+
+    </div>
+
+
+    <div
+        id="potList"
+        class="row g-3 mt-2"
+    ></div>
+
+
+</section>
+
+
+<!-- =========================================================
+     WISATA
+========================================================= -->
+
+<section
+    id="wisata"
+    class="cardx mb-4 admin-section"
+>
+
+
+    <div class="d-flex justify-content-between align-items-center">
+
+
+        <div>
+
+            <h2 class="h5 section-title">
+
+                Wisata Desa
+
+            </h2>
+
+
+            <small class="text-muted">
+
+                Kelola tempat wisata, foto dan deskripsi.
+
+            </small>
+
+        </div>
+
+
+        <button
+            class="btn btn-success btn-sm"
+            onclick="openEditor('wisata')"
+        >
+
+            <i class="bi bi-plus-lg me-1"></i>
+
+            Tambah Wisata
+
+        </button>
+
+
+    </div>
+
+
+    <div
+        id="wisataList"
+        class="row g-3 mt-2"
+    ></div>
+
+
+</section>
+
+
+<!-- =========================================================
+     BERITA
+========================================================= -->
+
+<section
+    id="news"
+    class="cardx mb-4 admin-section"
+>
+
+
+    <div class="d-flex justify-content-between align-items-center">
+
+
+        <div>
+
+            <h2 class="h5 section-title">
+                Berita
+            </h2>
+
+            <small class="text-muted">
+                CRUD berita desa.
+            </small>
+
+        </div>
+
+
+        <button
+            class="btn btn-success btn-sm"
+            onclick="openEditor('news')"
+        >
+
+            + Tambah
+
+        </button>
+
+
+    </div>
+
+
+    <div
+        id="newsList"
+        class="table-responsive mt-3"
+    ></div>
+
+
+</section>
+
+
+<!-- =========================================================
+     AGENDA
+========================================================= -->
+
+<section
+    id="agenda"
+    class="cardx mb-4 admin-section"
+>
+
+
+    <div class="d-flex justify-content-between align-items-center">
+
+
+        <div>
+
+            <h2 class="h5 section-title">
+                Agenda
+            </h2>
+
+            <small class="text-muted">
+                CRUD agenda kegiatan.
+            </small>
+
+        </div>
+
+
+        <button
+            class="btn btn-success btn-sm"
+            onclick="openEditor('agenda')"
+        >
+
+            + Tambah
+
+        </button>
+
+
+    </div>
+
+
+    <div
+        id="agendaList"
+        class="table-responsive mt-3"
+    ></div>
+
+
+</section>
+
+
+<!-- =========================================================
+     GALERI
+========================================================= -->
+
+<section
+    id="gallery"
+    class="cardx mb-4 admin-section"
+>
+
+
+    <div class="d-flex justify-content-between align-items-center">
+
+
+        <div>
+
+            <h2 class="h5 section-title">
+                Galeri
+            </h2>
+
+            <small class="text-muted">
+                Upload foto ke Supabase Storage.
+            </small>
+
+        </div>
+
+
+        <button
+            class="btn btn-success btn-sm"
+            onclick="openEditor('gallery')"
+        >
+
+            + Tambah
+
+        </button>
+
+
+    </div>
+
+
+    <div
+        id="galleryList"
+        class="row g-3 mt-1"
+    ></div>
+
+
+</section>
+
+
+<!-- =========================================================
+     LAYANAN
+========================================================= -->
+
+<section
+    id="services"
+    class="cardx mb-4 admin-section"
+>
+
+
+    <div class="d-flex justify-content-between align-items-center">
+
+
+        <div>
+
+            <h2 class="h5 section-title">
+                Layanan Desa
+            </h2>
+
+            <small class="text-muted">
+                CRUD layanan publik.
+            </small>
+
+        </div>
+
+
+        <button
+            class="btn btn-success btn-sm"
+            onclick="openEditor('services')"
+        >
+
+            + Tambah
+
+        </button>
+
+
+    </div>
+
+
+    <div
+        id="serviceList"
+        class="table-responsive mt-3"
+    ></div>
+
+
+</section>
+
+
+<!-- =========================================================
+     DOKUMEN
+========================================================= -->
+
+<section
+    id="documents"
+    class="cardx mb-4 admin-section"
+>
+
+
+    <div class="d-flex justify-content-between align-items-center">
+
+
+        <div>
+
+            <h2 class="h5 section-title">
+                Transparansi / Dokumen
+            </h2>
+
+            <small class="text-muted">
+                Upload dan kelola dokumen.
+            </small>
+
+        </div>
+
+
+        <button
+            class="btn btn-success btn-sm"
+            onclick="openEditor('documents')"
+        >
+
+            + Tambah
+
+        </button>
+
+
+    </div>
+
+
+    <div
+        id="docList"
+        class="table-responsive mt-3"
+    ></div>
+
+
+</section>
+
+
+<!-- =========================================================
+     FAQ
+========================================================= -->
+
+<section
+    id="faqs"
+    class="cardx mb-4 admin-section"
+>
+
+
+    <div class="d-flex justify-content-between align-items-center">
+
+
+        <div>
+
+            <h2 class="h5 section-title">
+                FAQ
+            </h2>
+
+            <small class="text-muted">
+                CRUD pertanyaan dan jawaban.
+            </small>
+
+        </div>
+
+
+        <button
+            class="btn btn-success btn-sm"
+            onclick="openEditor('faqs')"
+        >
+
+            + Tambah
+
+        </button>
+
+
+    </div>
+
+
+    <div
+        id="faqListAdmin"
+        class="table-responsive mt-3"
+    ></div>
+
+
+</section>
+
+
+<!-- =========================================================
+     PESAN
+========================================================= -->
+
+<section
+    id="messages"
+    class="cardx mb-4 admin-section"
+>
+
+
+    <div class="d-flex justify-content-between align-items-center">
+
+
+        <div>
+
+            <h2 class="h5 section-title">
+                Pesan Masuk
+            </h2>
+
+            <small class="text-muted">
+                Pesan dari FAQ dan Kontak.
+            </small>
+
+        </div>
+
+
+        <button
+            class="btn btn-outline-success btn-sm"
+            id="reloadMessages"
+        >
+
+            Muat Ulang
+
+        </button>
+
+
+    </div>
+
+
+    <div
+        id="messageList"
+        class="table-responsive mt-3"
+    ></div>
+
+
+</section>
+
+
+<!-- =========================================================
+     SETTINGS
+========================================================= -->
+
+<section
+    id="settings"
+    class="cardx mb-4 admin-section"
+>
+
+
+    <h2 class="h5 section-title">
+
+        Data Desa & Pengaturan Website
+
+    </h2>
+
+
+    <p class="text-muted small">
+
+        Informasi ini digunakan otomatis oleh website publik.
+
+    </p>
+
+
+    <form
+        id="settingsForm"
+        class="row g-3"
+    >
+
+
+        <div class="col-md-6">
+
+            <label class="form-label">
+                Nama Desa
+            </label>
+
+            <input
+                id="sname"
+                class="form-control"
+            >
+
+        </div>
+
+
+        <div class="col-md-6">
+
+            <label class="form-label">
+                Lokasi
+            </label>
+
+            <input
+                id="sloc"
+                class="form-control"
+            >
+
+        </div>
+
+
+        <div class="col-md-6">
+
+            <label class="form-label">
+                Kepala Desa
+            </label>
+
+            <input
+                id="shead"
+                class="form-control"
+            >
+
+        </div>
+
+
+        <div class="col-md-6">
+
+            <label class="form-label">
+                Luas Wilayah
+            </label>
+
+            <input
+                id="sarea"
+                class="form-control"
+            >
+
+        </div>
+
+
+        <div class="col-md-3">
+
+            <label class="form-label">
+                Penduduk
+            </label>
+
+            <input
+                id="spop"
+                type="number"
+                class="form-control"
+            >
+
+        </div>
+
+
+        <div class="col-md-3">
+
+            <label class="form-label">
+                KK
+            </label>
+
+            <input
+                id="skk"
+                type="number"
+                class="form-control"
+            >
+
+        </div>
+
+
+        <div class="col-md-3">
+
+            <label class="form-label">
+                Dusun
+            </label>
+
+            <input
+                id="sdusun"
+                type="number"
+                class="form-control"
+            >
+
+        </div>
+
+
+        <div class="col-md-3">
+
+            <label class="form-label">
+                Aparatur
+            </label>
+
+            <input
+                id="sap"
+                type="number"
+                class="form-control"
+            >
+
+        </div>
+
+
+        <div class="col-md-6">
+
+            <label class="form-label">
+                Email Resmi
+            </label>
+
+            <input
+                id="semail"
+                type="email"
+                class="form-control"
+            >
+
+        </div>
+
+
+        <div class="col-md-6">
+
+            <label class="form-label">
+                Telepon
+            </label>
+
+            <input
+                id="sphone"
+                class="form-control"
+            >
+
+        </div>
+
+
+        <div class="col-md-9">
+
+            <label class="form-label">
+                Alamat Kantor Desa
+            </label>
+
+            <input
+                id="saddress"
+                class="form-control"
+            >
+
+        </div>
+
+
+        <div class="col-md-3">
+
+            <label class="form-label">
+                Kode Pos
+            </label>
+
+            <input
+                id="spostal"
+                class="form-control"
+            >
+
+        </div>
+
+
+        <div class="col-12">
+
+            <label class="form-label">
+                Jam Pelayanan
+            </label>
+
+            <input
+                id="shours"
+                class="form-control"
+            >
+
+        </div>
+
+
+        <div class="col-12">
+
+            <button
+                class="btn btn-success"
+            >
+
+                <i class="bi bi-save me-1"></i>
+
+                Simpan Pengaturan
+
+            </button>
+
+        </div>
+
+
+    </form>
+
+
+</section>
+
+
+<!-- =========================================================
+     ADMINS
+========================================================= -->
+
+<section
+    id="admins"
+    class="cardx mb-4 admin-section"
+>
+
+
+    <h2 class="h5 section-title">
+
+        Manajemen Admin
+
+    </h2>
+
+
+    <p class="text-muted small">
+
+        Buat akun pengguna terlebih dahulu di
+        <b>Supabase → Authentication → Users</b>.
+
+    </p>
+
+
+    <form
+        id="adminAddForm"
+        class="row g-2 mb-3"
+    >
+
+
+        <div class="col-md-4">
+
+            <input
+                id="aemail"
+                type="email"
+                class="form-control"
+                placeholder="Email user Supabase"
+                required
+            >
+
+        </div>
+
+
+        <div class="col-md-3">
+
+            <input
+                id="aname"
+                class="form-control"
+                placeholder="Nama Admin"
+            >
+
+        </div>
+
+
+        <div class="col-md-3">
+
+            <select
+                id="arole"
+                class="form-select"
+            >
+
+                <option value="admin">
+                    Admin
+                </option>
+
+                <option value="superadmin">
+                    Superadmin
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div class="col-md-2">
+
+            <button
+                class="btn btn-success w-100"
+            >
+
+                Tambah
+
+            </button>
+
+        </div>
+
+
+    </form>
+
+
+    <div
+        id="adminList"
+        class="table-responsive"
+    ></div>
+
+
+</section>
+
+
+</div>
+
+</main>
+
+</div>
+
+
+<!-- =========================================================
+     MODAL EDITOR
+========================================================= -->
 
 <div
     class="modal fade"
     id="editorModal"
     tabindex="-1"
-    aria-hidden="true"
 >
 
-    <div class="modal-dialog modal-lg modal-dialog-centered">
+
+    <div
+        class="modal-dialog modal-lg modal-dialog-centered"
+    >
+
 
         <div class="modal-content">
 
+
             <form id="editorForm">
+
 
                 <div class="modal-header">
 
+
                     <h5
                         id="editorTitle"
-                        class="modal-title"
                     >
                         Tambah
                     </h5>
+
 
                     <button
                         type="button"
                         class="btn-close"
                         data-bs-dismiss="modal"
-                        aria-label="Tutup"
                     ></button>
+
 
                 </div>
 
@@ -1607,37 +1962,43 @@
 
                 <div class="modal-footer">
 
+
                     <button
                         type="button"
                         class="btn btn-light"
                         data-bs-dismiss="modal"
                     >
+
                         Batal
+
                     </button>
 
 
                     <button
-                        type="submit"
                         class="btn btn-success"
                     >
+
                         <i class="bi bi-save me-1"></i>
+
                         Simpan
+
                     </button>
+
 
                 </div>
 
+
             </form>
+
 
         </div>
 
+
     </div>
+
 
 </div>
 
-
-<!-- =====================================================
-     TOAST
-===================================================== -->
 
 <div
     id="toast"
@@ -1645,67 +2006,27 @@
 ></div>
 
 
-<!-- =====================================================
-     JAVASCRIPT
-===================================================== -->
+<!-- =========================================================
+     SCRIPT
+========================================================= -->
 
-<!-- Bootstrap -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+></script>
 
-<!-- Supabase -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+></script>
 
-<!-- Konfigurasi Supabase -->
-<script src="supabase/config.js"></script>
+<script
+    src="supabase-config.js"
+></script>
 
-<!-- Admin Logic -->
-<script src="assets/js/admin.js"></script>
+<script
+    src="assets/js/admin.js"
+></script>
 
-
-<!-- =====================================================
-     MOBILE MENU
-===================================================== -->
-
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-
-    const side = document.getElementById('side');
-    const menu = document.getElementById('menu');
-    const overlay = document.getElementById('overlay');
-
-    if (menu) {
-        menu.addEventListener('click', function () {
-            side.classList.toggle('open');
-            overlay.classList.toggle('show');
-        });
-    }
-
-    if (overlay) {
-        overlay.addEventListener('click', function () {
-            side.classList.remove('open');
-            overlay.classList.remove('show');
-        });
-    }
-
-    document.querySelectorAll('#nav a').forEach(function (link) {
-
-        link.addEventListener('click', function () {
-
-            document.querySelectorAll('#nav a').forEach(function (item) {
-                item.classList.remove('active');
-            });
-
-            this.classList.add('active');
-
-            side.classList.remove('open');
-            overlay.classList.remove('show');
-
-        });
-
-    });
-
-});
-</script>
 
 </body>
+
 </html>

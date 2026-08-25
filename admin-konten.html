@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1">
+
+    <title>Admin Konten Desa</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet">
+
+</head>
+
+<body class="bg-light">
+
+
+<div class="container py-5">
+
+    <div class="mb-4">
+
+        <h1>
+            Admin Konten Desa
+        </h1>
+
+        <p class="text-muted">
+            Kelola isi website Desa Fataatu Timur.
+        </p>
+
+    </div>
+
+
+    <!-- PILIH HALAMAN -->
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-body">
+
+            <label class="form-label fw-bold">
+                Pilih Halaman
+            </label>
+
+            <select
+                id="pageSelect"
+                class="form-select">
+
+                <option value="profil">
+                    Profil Desa
+                </option>
+
+                <option value="sejarah">
+                    Sejarah Desa
+                </option>
+
+                <option value="visi-misi">
+                    Visi & Misi
+                </option>
+
+                <option value="struktur">
+                    Struktur Pemerintah Desa
+                </option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+
+    <!-- FORM -->
+
+    <div class="card shadow-sm border-0">
+
+        <div class="card-body p-4">
+
+            <form id="contentForm">
+
+
+                <div class="mb-3">
+
+                    <label class="form-label fw-bold">
+                        Judul
+                    </label>
+
+                    <input
+                        type="text"
+                        id="title"
+                        class="form-control"
+                        required>
+
+                </div>
+
+
+                <div class="mb-3">
+
+                    <label class="form-label fw-bold">
+                        Subjudul
+                    </label>
+
+                    <input
+                        type="text"
+                        id="subtitle"
+                        class="form-control">
+
+                </div>
+
+
+                <div class="mb-3">
+
+                    <label class="form-label fw-bold">
+                        Isi Konten
+                    </label>
+
+                    <textarea
+                        id="content"
+                        class="form-control"
+                        rows="15"
+                        required>
+                    </textarea>
+
+                    <small class="text-muted">
+                        Tekan Enter untuk membuat paragraf/baris baru.
+                    </small>
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="btn btn-success">
+
+                    Simpan Perubahan
+
+                </button>
+
+
+                <span
+                    id="status"
+                    class="ms-3">
+                </span>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+</script>
+
+<script src="supabase/config.js"></script>
+
+
+<script>
+
+let supabaseClient = null;
+
+
+// ======================================================
+// CLIENT
+// ======================================================
+
+function getSupabase() {
+
+    if (!supabaseClient) {
+
+        supabaseClient =
+            window.supabase.createClient(
+                window.SUPABASE_CONFIG.url,
+                window.SUPABASE_CONFIG.key
+            );
+
+    }
+
+    return supabaseClient;
+}
+
+
+// ======================================================
+// LOAD DATA
+// ======================================================
+
+async function loadContent() {
+
+    const sb =
+        getSupabase();
+
+    const slug =
+        document.getElementById(
+            'pageSelect'
+        ).value;
+
+
+    const status =
+        document.getElementById(
+            'status'
+        );
+
+
+    status.innerHTML =
+        '<span class="text-muted">Memuat...</span>';
+
+
+    const {
+        data,
+        error
+    } = await sb
+        .from('page_content')
+        .select(
+            'slug,title,subtitle,content,updated_at'
+        )
+        .eq(
+            'slug',
+            slug
+        )
+        .maybeSingle();
+
+
+    if (error) {
+
+        console.error(error);
+
+        status.innerHTML =
+            '<span class="text-danger">Gagal mengambil data.</span>';
+
+        return;
+    }
+
+
+    if (!data) {
+
+        document.getElementById(
+            'title'
+        ).value = '';
+
+        document.getElementById(
+            'subtitle'
+        ).value = '';
+
+        document.getElementById(
+            'content'
+        ).value = '';
+
+        status.innerHTML =
+            '<span class="text-warning">Belum ada data.</span>';
+
+        return;
+    }
+
+
+    document.getElementById(
+        'title'
+    ).value =
+        data.title || '';
+
+
+    document.getElementById(
+        'subtitle'
+    ).value =
+        data.subtitle || '';
+
+
+    document.getElementById(
+        'content'
+    ).value =
+        data.content || '';
+
+
+    status.innerHTML =
+        '<span class="text-success">Data berhasil dimuat.</span>';
+}
+
+
+// ======================================================
+// SIMPAN
+// ======================================================
+
+async function saveContent(event) {
+
+    event.preventDefault();
+
+
+    const sb =
+        getSupabase();
+
+
+    const slug =
+        document.getElementById(
+            'pageSelect'
+        ).value;
+
+
+    const title =
+        document.getElementById(
+            'title'
+        ).value.trim();
+
+
+    const subtitle =
+        document.getElementById(
+            'subtitle'
+        ).value.trim();
+
+
+    const content =
+        document.getElementById(
+            'content'
+        ).value;
+
+
+    const status =
+        document.getElementById(
+            'status'
+        );
+
+
+    status.innerHTML =
+        '<span class="text-muted">Menyimpan...</span>';
+
+
+    const {
+        error
+    } = await sb
+        .from('page_content')
+        .upsert(
+            {
+                slug: slug,
+                title: title,
+                subtitle: subtitle,
+                content: content,
+                updated_at:
+                    new Date().toISOString()
+            },
+            {
+                onConflict: 'slug'
+            }
+        );
+
+
+    if (error) {
+
+        console.error(
+            'Gagal menyimpan:',
+            error
+        );
+
+        status.innerHTML =
+            '<span class="text-danger">Gagal menyimpan: ' +
+            error.message +
+            '</span>';
+
+        return;
+    }
+
+
+    status.innerHTML =
+        '<span class="text-success fw-bold">✓ Berhasil disimpan!</span>';
+
+
+    setTimeout(function () {
+
+        status.innerHTML = '';
+
+    }, 3000);
+
+}
+
+
+// ======================================================
+// EVENT
+// ======================================================
+
+document
+    .getElementById(
+        'pageSelect'
+    )
+    .addEventListener(
+        'change',
+        loadContent
+    );
+
+
+document
+    .getElementById(
+        'contentForm'
+    )
+    .addEventListener(
+        'submit',
+        saveContent
+    );
+
+
+// ======================================================
+// MULAI
+// ======================================================
+
+loadContent();
+
+</script>
+
+
+</body>
+
+</html>
