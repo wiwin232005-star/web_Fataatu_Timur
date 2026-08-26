@@ -1,0 +1,845 @@
+<!doctype html>
+<html lang="id">
+
+<head>
+
+    <meta charset="utf-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width,initial-scale=1"
+    >
+
+    <title>
+        Pesan Masuk · Admin Desa Fataatu Timur
+    </title>
+
+    <link
+        rel="icon"
+        href="assets/img/logo.svg"
+    >
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+        rel="stylesheet"
+    >
+
+    <style>
+
+        body {
+            background:#f4f8f6;
+            font-family:Arial,sans-serif;
+        }
+
+        .sidebar {
+            width:255px;
+            min-height:100vh;
+            background:#0d4939;
+            color:white;
+            position:fixed;
+            left:0;
+            top:0;
+            padding:25px 16px;
+        }
+
+        .sidebar a {
+            display:block;
+            color:white;
+            text-decoration:none;
+            padding:12px 14px;
+            margin:4px 0;
+            border-radius:10px;
+        }
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            background:rgba(255,255,255,.13);
+        }
+
+        .content {
+            margin-left:255px;
+            padding:30px;
+        }
+
+        .card-admin {
+            background:white;
+            border:0;
+            border-radius:18px;
+            box-shadow:0 5px 25px rgba(0,0,0,.06);
+        }
+
+        @media(max-width:768px){
+
+            .sidebar {
+                width:100%;
+                position:relative;
+                min-height:auto;
+            }
+
+            .content {
+                margin-left:0;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- SIDEBAR -->
+
+<aside class="sidebar">
+
+    <div class="mb-4">
+
+        <h5 class="fw-bold mb-1">
+            ADMIN DESA
+        </h5>
+
+        <small>
+            Desa Fataatu Timur
+        </small>
+
+    </div>
+
+
+    <a href="admin.html">
+
+        <i class="bi bi-speedometer2 me-2"></i>
+
+        Dashboard
+
+    </a>
+
+
+    <a href="admin.html#transparansi">
+
+        <i class="bi bi-file-earmark-text me-2"></i>
+
+        Transparansi
+
+    </a>
+
+
+    <a href="admin.html#faq">
+
+        <i class="bi bi-question-circle me-2"></i>
+
+        FAQ
+
+    </a>
+
+
+    <a
+        href="pesan-masuk.html"
+        class="active"
+    >
+
+        <i class="bi bi-envelope me-2"></i>
+
+        Pesan Masuk
+
+    </a>
+
+
+    <a href="pengaturan-website.html">
+
+        <i class="bi bi-gear me-2"></i>
+
+        Pengaturan Website
+
+    </a>
+
+
+    <hr>
+
+
+    <a href="index.html">
+
+        <i class="bi bi-globe me-2"></i>
+
+        Lihat Website
+
+    </a>
+
+
+    <a
+        href="#"
+        id="logoutBtn"
+    >
+
+        <i class="bi bi-box-arrow-right me-2"></i>
+
+        Logout
+
+    </a>
+
+</aside>
+
+
+<!-- CONTENT -->
+
+<main class="content">
+
+    <div
+        class="d-flex justify-content-between align-items-center mb-4"
+    >
+
+        <div>
+
+            <h2 class="fw-bold mb-1">
+                Pesan Masuk
+            </h2>
+
+            <p class="text-muted mb-0">
+                Pesan dari masyarakat melalui
+                halaman kontak website.
+            </p>
+
+        </div>
+
+
+        <span
+            class="badge bg-success"
+            id="messageCount"
+        >
+            0 Pesan
+        </span>
+
+    </div>
+
+
+    <div class="card-admin p-4">
+
+        <div
+            id="messageContainer"
+        >
+
+            <div class="text-center py-5">
+
+                <div
+                    class="spinner-border text-success"
+                ></div>
+
+                <p class="text-muted mt-3">
+                    Memuat pesan...
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</main>
+
+
+<!-- DETAIL MODAL -->
+
+<div
+    class="modal fade"
+    id="messageModal"
+    tabindex="-1"
+>
+
+    <div
+        class="modal-dialog modal-lg modal-dialog-centered"
+    >
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <h5 class="modal-title">
+                    Detail Pesan
+                </h5>
+
+                <button
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                ></button>
+
+            </div>
+
+
+            <div class="modal-body">
+
+                <div id="messageDetail"></div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+></script>
+
+<script
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+></script>
+
+<script src="supabase-config.js"></script>
+
+
+<script>
+
+"use strict";
+
+let supabaseClient = null;
+
+
+function getSupabase() {
+
+    if (supabaseClient) {
+        return supabaseClient;
+    }
+
+    supabaseClient =
+        window.supabase.createClient(
+            window.SUPABASE_CONFIG.url,
+            window.SUPABASE_CONFIG.key
+        );
+
+    return supabaseClient;
+}
+
+
+// =========================================================
+// LOAD MESSAGES
+// =========================================================
+
+async function loadMessages() {
+
+    const sb =
+        getSupabase();
+
+
+    const container =
+        document.getElementById(
+            "messageContainer"
+        );
+
+
+    const result =
+        await sb
+            .from("messages")
+            .select("*")
+            .order(
+                "created_at",
+                {
+                    ascending:false
+                }
+            );
+
+
+    if (result.error) {
+
+        console.error(
+            result.error
+        );
+
+
+        container.innerHTML = `
+
+            <div class="alert alert-danger">
+
+                Gagal mengambil pesan.
+
+                <br>
+
+                ${result.error.message}
+
+            </div>
+
+        `;
+
+        return;
+    }
+
+
+    const data =
+        result.data || [];
+
+
+    document.getElementById(
+        "messageCount"
+    ).textContent =
+        data.length +
+        " Pesan";
+
+
+    if (!data.length) {
+
+        container.innerHTML = `
+
+            <div class="text-center py-5">
+
+                <i
+                    class="bi bi-envelope-open"
+                    style="
+                        font-size:55px;
+                        color:#198754;
+                    "
+                ></i>
+
+                <h4 class="mt-3">
+                    Belum ada pesan
+                </h4>
+
+                <p class="text-muted">
+                    Pesan dari masyarakat akan
+                    muncul di halaman ini.
+                </p>
+
+            </div>
+
+        `;
+
+        return;
+    }
+
+
+    let html = `
+
+        <div class="table-responsive">
+
+            <table
+                class="table align-middle"
+            >
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Pengirim
+                        </th>
+
+                        <th>
+                            Subjek
+                        </th>
+
+                        <th>
+                            Pesan
+                        </th>
+
+                        <th>
+                            Tanggal
+                        </th>
+
+                        <th>
+                            Aksi
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+    `;
+
+
+    data.forEach(
+        function(item) {
+
+            const nama =
+                item.name ||
+                item.nama ||
+                "Pengunjung";
+
+
+            const email =
+                item.email ||
+                "-";
+
+
+            const subject =
+                item.subject ||
+                item.subjek ||
+                "Pesan";
+
+
+            const message =
+                item.message ||
+                item.pesan ||
+                "";
+
+
+            const tanggal =
+                item.created_at
+                ?
+                new Date(
+                    item.created_at
+                ).toLocaleString(
+                    "id-ID"
+                )
+                :
+                "-";
+
+
+            html += `
+
+                <tr>
+
+                    <td>
+
+                        <strong>
+                            ${escapeHtml(nama)}
+                        </strong>
+
+                        <br>
+
+                        <small
+                            class="text-muted"
+                        >
+                            ${escapeHtml(email)}
+                        </small>
+
+                    </td>
+
+
+                    <td>
+                        ${escapeHtml(subject)}
+                    </td>
+
+
+                    <td>
+
+                        <div
+                            style="
+                                max-width:300px;
+                                white-space:nowrap;
+                                overflow:hidden;
+                                text-overflow:ellipsis;
+                            "
+                        >
+
+                            ${escapeHtml(message)}
+
+                        </div>
+
+                    </td>
+
+
+                    <td>
+                        <small>
+                            ${escapeHtml(tanggal)}
+                        </small>
+                    </td>
+
+
+                    <td>
+
+                        <button
+                            class="btn btn-sm btn-outline-success"
+                            onclick='showMessage(${JSON.stringify(item)})'
+                        >
+
+                            <i class="bi bi-eye"></i>
+
+                        </button>
+
+
+                        <button
+                            class="btn btn-sm btn-outline-danger"
+                            onclick="deleteMessage(${item.id})"
+                        >
+
+                            <i class="bi bi-trash"></i>
+
+                        </button>
+
+                    </td>
+
+                </tr>
+
+            `;
+
+        }
+    );
+
+
+    html += `
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    `;
+
+
+    container.innerHTML =
+        html;
+
+}
+
+
+// =========================================================
+// DETAIL
+// =========================================================
+
+function showMessage(item) {
+
+    const nama =
+        item.name ||
+        item.nama ||
+        "Pengunjung";
+
+
+    const email =
+        item.email ||
+        "-";
+
+
+    const subject =
+        item.subject ||
+        item.subjek ||
+        "Pesan";
+
+
+    const message =
+        item.message ||
+        item.pesan ||
+        "";
+
+
+    const tanggal =
+        item.created_at
+        ?
+        new Date(
+            item.created_at
+        ).toLocaleString(
+            "id-ID"
+        )
+        :
+        "-";
+
+
+    document.getElementById(
+        "messageDetail"
+    ).innerHTML = `
+
+        <div class="mb-3">
+
+            <strong>
+                Nama
+            </strong>
+
+            <p>
+                ${escapeHtml(nama)}
+            </p>
+
+        </div>
+
+
+        <div class="mb-3">
+
+            <strong>
+                Email
+            </strong>
+
+            <p>
+                ${escapeHtml(email)}
+            </p>
+
+        </div>
+
+
+        <div class="mb-3">
+
+            <strong>
+                Subjek
+            </strong>
+
+            <p>
+                ${escapeHtml(subject)}
+            </p>
+
+        </div>
+
+
+        <div class="mb-3">
+
+            <strong>
+                Tanggal
+            </strong>
+
+            <p>
+                ${escapeHtml(tanggal)}
+            </p>
+
+        </div>
+
+
+        <div>
+
+            <strong>
+                Pesan
+            </strong>
+
+            <div
+                class="bg-light rounded-3 p-3 mt-2"
+                style="white-space:pre-line;"
+            >
+                ${escapeHtml(message)}
+            </div>
+
+        </div>
+
+    `;
+
+
+    bootstrap.Modal
+        .getOrCreateInstance(
+            document.getElementById(
+                "messageModal"
+            )
+        )
+        .show();
+
+}
+
+
+// =========================================================
+// DELETE
+// =========================================================
+
+async function deleteMessage(id) {
+
+    if (
+        !confirm(
+            "Hapus pesan ini?"
+        )
+    ) {
+
+        return;
+
+    }
+
+
+    const sb =
+        getSupabase();
+
+
+    const result =
+        await sb
+            .from("messages")
+            .delete()
+            .eq(
+                "id",
+                id
+            );
+
+
+    if (result.error) {
+
+        alert(
+            "Pesan gagal dihapus."
+        );
+
+        console.error(
+            result.error
+        );
+
+        return;
+
+    }
+
+
+    alert(
+        "Pesan berhasil dihapus."
+    );
+
+
+    loadMessages();
+
+}
+
+
+// =========================================================
+// ESCAPE
+// =========================================================
+
+function escapeHtml(value) {
+
+    return String(
+        value ?? ""
+    )
+    .replace(
+        /[&<>"']/g,
+        function(m) {
+
+            return {
+
+                "&":"&amp;",
+                "<":"&lt;",
+                ">":"&gt;",
+                '"':"&quot;",
+                "'":"&#039;"
+
+            }[m];
+
+        }
+    );
+
+}
+
+
+// =========================================================
+// LOGOUT
+// =========================================================
+
+document
+    .getElementById(
+        "logoutBtn"
+    )
+    .addEventListener(
+        "click",
+        async function(e) {
+
+            e.preventDefault();
+
+            const sb =
+                getSupabase();
+
+            await sb.auth.signOut();
+
+            window.location.href =
+                "admin-login.html";
+
+        }
+    );
+
+
+// =========================================================
+// START
+// =========================================================
+
+document.addEventListener(
+    "DOMContentLoaded",
+    loadMessages
+);
+
+</script>
+
+
+</body>
+
+</html>

@@ -1,255 +1,120 @@
 (function () {
+    "use strict";
 
-    'use strict';
+    const cfg = window.SUPABASE_CONFIG || {};
 
-
-    // ============================================================
-    // SUPABASE CONFIG
-    // ============================================================
-
-    const cfg =
-        window.SUPABASE_CONFIG || {};
-
-
-    const ready = () => {
-
-        return (
-
-            window.supabase &&
-
-            cfg.url &&
-
-            !String(cfg.url).includes('MASUKKAN-') &&
-
-            cfg.key &&
-
-            !String(cfg.key).includes('MASUKKAN-')
-
-        );
-
-    };
-
-
-    // ============================================================
-    // GLOBAL
-    // ============================================================
+    const ready = () =>
+        window.supabase &&
+        cfg.url &&
+        !String(cfg.url).includes("MASUKKAN-") &&
+        cfg.key &&
+        !String(cfg.key).includes("MASUKKAN-");
 
     let sb = null;
 
     let cache = {
-
         site_settings: [],
-
         page_content: [],
-
         news: [],
-
         agenda: [],
-
         gallery: [],
-
         potentials: [],
-
-        wisata: [],
-
         services: [],
-
+        transparansi: [],
         faqs: [],
-
-        documents: [],
-
         messages: [],
-
         admin_users: []
-
     };
-
 
     let current = {
-
         type: null,
-
         id: null
-
     };
 
+    const $ = (selector) => document.querySelector(selector);
 
-    // ============================================================
-    // SHORTCUT
-    // ============================================================
+    function esc(value) {
+        return String(value ?? "").replace(
+            /[&<>"']/g,
+            (m) => ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#039;"
+            }[m])
+        );
+    }
 
-    const $ =
-        selector =>
-            document.querySelector(selector);
+    function toast(message, type = "success") {
+        const toast = $("#toast");
 
+        if (!toast) return;
 
-    // ============================================================
-    // ESCAPE HTML
-    // ============================================================
+        const cls =
+            type === "success"
+                ? "alert-success"
+                : "alert-danger";
 
-    const esc =
-        value =>
-
-            String(value ?? '')
-
-                .replace(
-                    /[&<>"']/g,
-
-                    m => ({
-
-                        '&': '&amp;',
-
-                        '<': '&lt;',
-
-                        '>': '&gt;',
-
-                        '"': '&quot;',
-
-                        "'": '&#039;'
-
-                    }[m])
-
-                );
-
-
-    // ============================================================
-    // TOAST
-    // ============================================================
-
-    function toast(
-        msg,
-        type = 'success'
-    ) {
-
-        const color =
-            type === 'success'
-                ? 'alert-success'
-                : 'alert-danger';
-
-
-        $('#toast').innerHTML = `
-
-            <div class="alert ${color} shadow-sm">
-
-                ${esc(msg)}
-
+        toast.innerHTML = `
+            <div class="alert ${cls} shadow-sm">
+                ${esc(message)}
             </div>
-
         `;
 
-
-        setTimeout(
-            () => {
-
-                $('#toast').innerHTML = '';
-
-            },
-            3500
-        );
-
+        setTimeout(() => {
+            toast.innerHTML = "";
+        }, 3500);
     }
-
-
-    // ============================================================
-    // CLIENT
-    // ============================================================
 
     async function client() {
-
         if (!ready()) {
-
             throw new Error(
-                'Supabase belum dikonfigurasi.'
+                "Supabase belum dikonfigurasi."
             );
-
         }
-
 
         if (!sb) {
-
-            sb =
-                window.supabase.createClient(
-                    cfg.url,
-                    cfg.key
-                );
-
+            sb = window.supabase.createClient(
+                cfg.url,
+                cfg.key
+            );
         }
-
 
         return sb;
-
     }
 
-
-    // ============================================================
-    // CURRENT USER
-    // ============================================================
-
-    async function user() {
-
-        const {
-            data,
-            error
-        } =
-            await (
-                await client()
-            )
-                .auth
-                .getUser();
-
+    async function getUser() {
+        const { data, error } =
+            await (await client()).auth.getUser();
 
         if (error) {
-
             throw error;
-
         }
 
-
         return data.user;
-
     }
-
-
-    // ============================================================
-    // CEK ADMIN
-    // ============================================================
 
     async function ensureAdmin() {
 
-        const u =
-            await user();
-
+        const u = await getUser();
 
         if (!u) {
-
+            showLogin();
             return false;
-
         }
 
-
-        const result =
-            await sb
-
-                .from('admin_users')
-
-                .select(
-                    'user_id,role,name,email'
-                )
-
-                .eq(
-                    'user_id',
-                    u.id
-                )
-
-                .maybeSingle();
-
+        const result = await sb
+            .from("admin_users")
+            .select(
+                "user_id,role,name,email"
+            )
+            .eq("user_id", u.id)
+            .maybeSingle();
 
         if (result.error) {
-
             throw result.error;
-
         }
-
 
         if (!result.data) {
 
@@ -258,280 +123,183 @@
             showLogin();
 
             alert(
-                'Akun ini belum terdaftar sebagai Admin.'
+                "Akun ini belum terdaftar sebagai Admin."
             );
 
             return false;
-
         }
-
 
         showApp(u);
 
         return true;
-
     }
-
-
-    // ============================================================
-    // SHOW LOGIN
-    // ============================================================
 
     function showLogin() {
 
-        $('#login')
-            .classList
-            .remove('hidden');
+        $("#login")?.classList.remove("hidden");
 
+        $("#app")?.classList.add("hidden");
 
-        $('#app')
-            .classList
-            .add('hidden');
+        if ($("#status")) {
+            $("#status").className =
+                "badge text-bg-secondary";
 
-
-        $('#status').className =
-            'badge text-bg-secondary';
-
-
-        $('#status').textContent =
-            'Belum login';
-
+            $("#status").textContent =
+                "Belum login";
+        }
     }
 
+    function showApp(user) {
 
-    // ============================================================
-    // SHOW APP
-    // ============================================================
+        $("#login")?.classList.add("hidden");
 
-    function showApp(u) {
+        $("#app")?.classList.remove("hidden");
 
-        $('#login')
-            .classList
-            .add('hidden');
+        if ($("#status")) {
 
+            $("#status").className =
+                "badge text-bg-success";
 
-        $('#app')
-            .classList
-            .remove('hidden');
-
-
-        $('#status').className =
-            'badge text-bg-success';
-
-
-        $('#status').textContent =
-            'Admin: ' +
-            (u.email || '');
-
+            $("#status").textContent =
+                "Admin: " +
+                (user.email || "");
+        }
     }
-
-
-    // ============================================================
-    // TABLE
-    // ============================================================
 
     async function table(
         name,
-        order = 'created_at'
+        order = "created_at"
     ) {
 
-        let query =
-            sb
-                .from(name)
-                .select('*');
-
+        let query = sb
+            .from(name)
+            .select("*");
 
         if (order) {
 
-            query =
-                query.order(
-                    order,
-                    {
-                        ascending: false
-                    }
-                );
-
+            query = query.order(
+                order,
+                {
+                    ascending: false
+                }
+            );
         }
 
-
-        const result =
-            await query;
-
+        const result = await query;
 
         if (result.error) {
-
             throw result.error;
-
         }
 
-
         return result.data || [];
-
     }
-
-
-    // ============================================================
-    // LOAD SEMUA DATA
-    // ============================================================
 
     async function loadAll() {
 
         if (!ready()) {
 
-            $('#configWarn')
-                .classList
-                .remove('hidden');
+            $("#configWarn")
+                ?.classList
+                .remove("hidden");
 
             return;
-
         }
 
-
-        $('#configWarn')
-            .classList
-            .add('hidden');
-
+        $("#configWarn")
+            ?.classList
+            .add("hidden");
 
         await client();
 
+        const adminOK =
+            await ensureAdmin();
 
-        if (
-            !(await ensureAdmin())
-        ) {
-
+        if (!adminOK) {
             return;
-
         }
-
 
         try {
 
             const [
-
                 site,
-
                 pages,
-
                 news,
-
                 agenda,
-
                 gallery,
-
                 potentials,
-
-                wisata,
-
                 services,
-
+                transparansi,
                 faqs,
-
-                documents,
-
                 messages,
-
                 admins
+            ] = await Promise.all([
 
-            ] =
+                table(
+                    "site_settings",
+                    null
+                ),
 
-                await Promise.all([
+                table(
+                    "page_content",
+                    "updated_at"
+                ),
 
-                    table(
-                        'site_settings',
-                        null
-                    ),
+                table(
+                    "news"
+                ),
 
-                    table(
-                        'page_content',
-                        'updated_at'
-                    ),
+                table(
+                    "agenda"
+                ),
 
-                    table(
-                        'news'
-                    ),
+                table(
+                    "gallery"
+                ),
 
-                    table(
-                        'agenda'
-                    ),
+                table(
+                    "potentials"
+                ),
 
-                    table(
-                        'gallery'
-                    ),
+                table(
+                    "services"
+                ),
 
-                    table(
-                        'potentials'
-                    ),
+                table(
+                    "transparansi",
+                    "id"
+                ),
 
-                    table(
-                        'wisata'
-                    ),
+                table(
+                    "faqs",
+                    "id"
+                ),
 
-                    table(
-                        'services'
-                    ),
+                table(
+                    "messages",
+                    "id"
+                ),
 
-                    table(
-                        'faqs'
-                    ),
-
-                    table(
-                        'documents'
-                    ),
-
-                    table(
-                        'messages'
-                    ),
-
-                    table(
-                        'admin_users'
-                    )
-
-                ]);
-
+                table(
+                    "admin_users",
+                    "created_at"
+                )
+            ]);
 
             cache = {
-
-                site_settings:
-                    site,
-
-                page_content:
-                    pages,
-
-                news:
-                    news,
-
-                agenda:
-                    agenda,
-
-                gallery:
-                    gallery,
-
-                potentials:
-                    potentials,
-
-                wisata:
-                    wisata,
-
-                services:
-                    services,
-
-                faqs:
-                    faqs,
-
-                documents:
-                    documents,
-
-                messages:
-                    messages,
-
-                admin_users:
-                    admins
-
+                site_settings: site,
+                page_content: pages,
+                news,
+                agenda,
+                gallery,
+                potentials,
+                services,
+                transparansi,
+                faqs,
+                messages,
+                admin_users: admins
             };
 
-
             render();
-
 
         } catch (error) {
 
@@ -539,327 +307,286 @@
 
             toast(
                 error.message ||
-                'Gagal memuat data.',
-                'error'
+                "Gagal memuat data.",
+                "error"
             );
-
         }
-
     }
-
-
-    // ============================================================
-    // RENDER
-    // ============================================================
 
     function render() {
 
         const site =
-            cache.site_settings?.[0] ||
-            {};
+            cache.site_settings?.[0] || {};
 
+        if ($("#mPop")) {
+            $("#mPop").textContent =
+                Number(
+                    site.population || 0
+                ).toLocaleString("id-ID");
+        }
 
-        $('#mPop').textContent =
-            Number(
-                site.population || 0
-            )
-                .toLocaleString('id-ID');
+        if ($("#mNews")) {
+            $("#mNews").textContent =
+                cache.news.length;
+        }
 
+        if ($("#mAgenda")) {
+            $("#mAgenda").textContent =
+                cache.agenda.length;
+        }
 
-        $('#mNews').textContent =
-            cache.news.length;
+        if ($("#mGallery")) {
+            $("#mGallery").textContent =
+                cache.gallery.length;
+        }
 
+        if ($("#mPot")) {
+            $("#mPot").textContent =
+                cache.potentials.length;
+        }
 
-        $('#mAgenda').textContent =
-            cache.agenda.length;
+        if ($("#mDocs")) {
+            $("#mDocs").textContent =
+                cache.transparansi.length;
+        }
 
+        if ($("#mMsg")) {
+            $("#mMsg").textContent =
+                cache.messages.filter(
+                    x => x.status === "baru"
+                ).length;
+        }
 
-        $('#mGallery').textContent =
-            cache.gallery.length;
-
-
-        $('#mPot').textContent =
-            cache.potentials.length;
-
-
-        $('#mWisata').textContent =
-            cache.wisata.length;
-
-
-        $('#mDocs').textContent =
-            cache.documents.length;
-
-
-        $('#mMsg').textContent =
-            cache.messages
-                .filter(
-                    x =>
-                        x.status === 'baru'
-                )
-                .length;
-
+        if ($("#mFaq")) {
+            $("#mFaq").textContent =
+                cache.faqs.length;
+        }
 
         renderPages();
 
-
         renderTable(
-            'news',
-            'newsList',
+            "news",
+            "newsList",
             [
-                'title',
-                'cat',
-                'date',
-                'summary'
+                "title",
+                "cat",
+                "date",
+                "summary"
             ]
         );
 
-
         renderTable(
-            'agenda',
-            'agendaList',
+            "agenda",
+            "agendaList",
             [
-                'title',
-                'date',
-                'time',
-                'place'
+                "title",
+                "date",
+                "time",
+                "place"
             ]
         );
 
-
-        renderPotentials();
-
-
-        renderWisata();
-
-
         renderTable(
-            'faqs',
-            'faqListAdmin',
+            "potentials",
+            "potList",
             [
-                'q',
-                'a'
+                "name",
+                "cat",
+                "description"
             ]
         );
 
-
         renderTable(
-            'services',
-            'serviceList',
+            "services",
+            "serviceList",
             [
-                'name',
-                'description'
+                "name",
+                "description"
             ]
         );
 
+        renderTable(
+            "faqs",
+            "faqListAdmin",
+            [
+                "q",
+                "a"
+            ]
+        );
 
-        renderDocs();
-
+        renderTransparansi();
 
         renderGallery();
 
-
         renderMessages();
-
 
         renderAdmins();
 
-
         fillSettings(site);
-
     }
 
-
-    // ============================================================
+    // =========================================================
     // PAGE CONTENT
-    // ============================================================
+    // =========================================================
 
     function renderPages() {
 
         const slugs = [
-
-            'profil',
-
-            'sejarah',
-
-            'visi-misi',
-
-            'struktur',
-
-            'sambutan'
-
+            "profil",
+            "sejarah",
+            "visi-misi",
+            "struktur",
+            "hasil-bumi",
+            "wisata",
+            "sambutan"
         ];
 
-
         const names = {
-
             profil:
-                'Profil Desa',
+                "Profil Desa",
 
             sejarah:
-                'Sejarah',
+                "Sejarah",
 
-            'visi-misi':
-                'Visi & Misi',
+            "visi-misi":
+                "Visi & Misi",
 
             struktur:
-                'Pemerintahan / Struktur',
+                "Pemerintahan / Struktur",
+
+            "hasil-bumi":
+                "Hasil Bumi",
+
+            wisata:
+                "Wisata",
 
             sambutan:
-                'Sambutan Kepala Desa'
-
+                "Sambutan Kepala Desa"
         };
-
 
         const map =
             Object.fromEntries(
-
                 cache.page_content.map(
                     x => [
                         x.slug,
                         x
                     ]
                 )
-
             );
 
+        if (!$("#pageForms")) {
+            return;
+        }
 
-        $('#pageForms').innerHTML =
+        $("#pageForms").innerHTML =
+            slugs.map(slug => {
 
-            slugs
-                .map(
-                    slug => {
+                const p =
+                    map[slug] || {
+                        title:
+                            names[slug],
 
-                        const page =
-                            map[slug] ||
-                            {
+                        subtitle: "",
 
-                                title:
-                                    names[slug],
+                        content: ""
+                    };
 
-                                subtitle:
-                                    '',
+                return `
+                    <div
+                        class="border rounded-3 p-3 mb-3"
+                    >
 
-                                content:
-                                    ''
+                        <div class="row g-2">
 
-                            };
+                            <div class="col-md-4">
 
+                                <label
+                                    class="form-label small"
+                                >
+                                    Judul
+                                </label>
 
-                        return `
+                                <input
+                                    id="pt-${slug}"
+                                    class="form-control"
+                                    value="${esc(p.title)}"
+                                >
 
-                        <div
-                            class="border rounded-3 p-3 mb-3"
-                        >
+                            </div>
 
-                            <div class="row g-2">
+                            <div class="col-md-8">
 
+                                <label
+                                    class="form-label small"
+                                >
+                                    Subjudul
+                                </label>
 
-                                <div class="col-md-4">
+                                <input
+                                    id="ps-${slug}"
+                                    class="form-control"
+                                    value="${esc(p.subtitle)}"
+                                >
 
-                                    <label
-                                        class="form-label small"
-                                    >
-                                        Judul
-                                    </label>
+                            </div>
 
-                                    <input
-                                        id="pt-${slug}"
-                                        class="form-control"
-                                        value="${esc(page.title)}"
-                                    >
+                            <div class="col-12">
 
-                                </div>
+                                <label
+                                    class="form-label small"
+                                >
+                                    Isi halaman
+                                </label>
 
+                                <textarea
+                                    id="pc-${slug}"
+                                    rows="6"
+                                    class="form-control"
+                                >${esc(p.content)}</textarea>
 
-                                <div class="col-md-8">
+                            </div>
 
-                                    <label
-                                        class="form-label small"
-                                    >
-                                        Subjudul
-                                    </label>
+                            <div class="col-12">
 
-                                    <input
-                                        id="ps-${slug}"
-                                        class="form-control"
-                                        value="${esc(page.subtitle)}"
-                                    >
-
-                                </div>
-
-
-                                <div class="col-12">
-
-                                    <label
-                                        class="form-label small"
-                                    >
-                                        Isi halaman
-                                    </label>
-
-                                    <textarea
-                                        id="pc-${slug}"
-                                        rows="6"
-                                        class="form-control"
-                                    >${esc(page.content)}</textarea>
-
-                                </div>
-
-
-                                <div class="col-12">
-
-                                    <button
-                                        class="btn btn-success btn-sm"
-                                        onclick="savePage('${slug}')"
-                                    >
-
-                                        Simpan
-                                        ${esc(names[slug])}
-
-                                    </button>
-
-                                </div>
-
+                                <button
+                                    class="btn btn-success btn-sm"
+                                    onclick="savePage('${slug}')"
+                                >
+                                    Simpan
+                                    ${esc(names[slug])}
+                                </button>
 
                             </div>
 
                         </div>
 
-                        `;
+                    </div>
+                `;
 
-                    }
-                )
-                .join('');
-
+            }).join("");
     }
 
-
-    // ============================================================
-    // GENERIC TABLE
-    // ============================================================
+    // =========================================================
+    // TABLE RENDER
+    // =========================================================
 
     function renderTable(
-        tableName,
+        type,
         elementId,
         columns
     ) {
 
-        const rows =
-            cache[tableName] ||
-            [];
+        const container =
+            $("#" + elementId);
 
-
-        const element =
-            $('#' + elementId);
-
-
-        if (!element) {
-
+        if (!container) {
             return;
-
         }
 
+        const rows =
+            cache[type] || [];
 
-        element.innerHTML = `
+        container.innerHTML = `
 
             <table
                 class="table table-hover align-middle"
@@ -869,17 +596,12 @@
 
                     <tr>
 
-                        ${
-
-                            columns
-
-                                .map(
-                                    column =>
-                                        `<th>${esc(column)}</th>`
-                                )
-
-                                .join('')
-
+                        ${columns
+                            .map(
+                                c =>
+                                    `<th>${esc(c)}</th>`
+                            )
+                            .join("")
                         }
 
                         <th class="text-end">
@@ -890,604 +612,108 @@
 
                 </thead>
 
-
                 <tbody>
 
                     ${
+                        rows.map(row => `
 
-                        rows
+                            <tr>
 
-                            .map(
-                                row => `
-
-                                <tr>
-
-                                    ${
-
-                                        columns
-
-                                            .map(
-                                                column => `
-
+                                ${
+                                    columns
+                                        .map(
+                                            c => `
                                                 <td>
-
                                                     <div
                                                         class="${
                                                             [
-                                                                'body',
-                                                                'description',
-                                                                'summary',
-                                                                'a'
-                                                            ].includes(
-                                                                column
-                                                            )
-                                                                ? 'truncate'
-                                                                : ''
+                                                                "body",
+                                                                "description",
+                                                                "summary",
+                                                                "a"
+                                                            ].includes(c)
+                                                                ? "truncate"
+                                                                : ""
                                                         }"
                                                     >
-
                                                         ${esc(
-                                                            row[column] ??
-                                                            ''
+                                                            row[c] ??
+                                                            ""
                                                         )}
-
                                                     </div>
-
                                                 </td>
+                                            `
+                                        )
+                                        .join("")
+                                }
 
-                                                `
-                                            )
+                                <td
+                                    class="text-end text-nowrap"
+                                >
 
-                                            .join('')
-
-                                    }
-
-
-                                    <td
-                                        class="text-end text-nowrap"
+                                    <button
+                                        class="btn btn-sm btn-outline-secondary"
+                                        onclick="openEditor(
+                                            '${type}',
+                                            '${row.id}'
+                                        )"
                                     >
+                                        Edit
+                                    </button>
 
-                                        <button
-                                            class="btn btn-sm btn-outline-secondary"
-                                            onclick="openEditor(
-                                                '${tableName}',
-                                                '${row.id}'
-                                            )"
-                                        >
+                                    <button
+                                        class="btn btn-sm btn-outline-danger"
+                                        onclick="delRow(
+                                            '${type}',
+                                            '${row.id}'
+                                        )"
+                                    >
+                                        Hapus
+                                    </button>
 
-                                            Edit
+                                </td>
 
-                                        </button>
+                            </tr>
 
-
-                                        <button
-                                            class="btn btn-sm btn-outline-danger"
-                                            onclick="delRow(
-                                                '${tableName}',
-                                                '${row.id}'
-                                            )"
-                                        >
-
-                                            Hapus
-
-                                        </button>
-
-                                    </td>
-
-
-                                </tr>
-
-                                `
-                            )
-
-                            .join('')
-
-                        ||
+                        `).join("") ||
 
                         `
-
-                        <tr>
-
-                            <td
-                                colspan="${columns.length + 1}"
-                                class="text-muted"
-                            >
-
-                                Belum ada data.
-
-                            </td>
-
-                        </tr>
-
+                            <tr>
+                                <td
+                                    colspan="${
+                                        columns.length + 1
+                                    }"
+                                    class="text-muted"
+                                >
+                                    Belum ada data.
+                                </td>
+                            </tr>
                         `
-
                     }
 
                 </tbody>
 
             </table>
-
         `;
-
     }
 
+    // =========================================================
+    // TRANSPARANSI
+    // =========================================================
 
-    // ============================================================
-    // RENDER POTENSI
-    // ============================================================
+    function renderTransparansi() {
 
-    function renderPotentials() {
+        const container =
+            $("#docList");
+
+        if (!container) {
+            return;
+        }
 
         const rows =
-            cache.potentials || [];
+            cache.transparansi || [];
 
-
-        $('#potList').innerHTML =
-
-            rows.length
-
-                ?
-
-                `
-
-                ${
-
-                    rows
-
-                        .map(
-                            row => `
-
-                            <div
-                                class="col-md-6 col-lg-4"
-                            >
-
-                                <div
-                                    class="potensi-card"
-                                >
-
-
-                                    ${
-                                        row.image_url
-
-                                            ?
-
-                                            `
-
-                                            <img
-                                                src="${esc(row.image_url)}"
-                                                alt="${esc(row.name)}"
-                                            >
-
-                                            `
-
-                                            :
-
-                                            `
-
-                                            <div
-                                                class="d-flex align-items-center justify-content-center bg-light"
-                                                style="height:210px"
-                                            >
-
-                                                <span class="text-muted">
-
-                                                    Belum ada foto
-
-                                                </span>
-
-                                            </div>
-
-                                            `
-                                    }
-
-
-                                    <div
-                                        class="potensi-body"
-                                    >
-
-
-                                        <div
-                                            class="potensi-title mb-1"
-                                        >
-
-                                            ${esc(
-                                                row.name
-                                            )}
-
-                                        </div>
-
-
-                                        <span
-                                            class="badge text-bg-light mb-2"
-                                        >
-
-                                            ${esc(
-                                                row.cat ||
-                                                'Potensi Desa'
-                                            )}
-
-                                        </span>
-
-
-                                        <div
-                                            class="potensi-description mb-3"
-                                        >
-
-                                            ${esc(
-                                                row.description ||
-                                                ''
-                                            )}
-
-                                        </div>
-
-
-                                        <div
-                                            class="d-flex gap-2"
-                                        >
-
-
-                                            <button
-                                                class="btn btn-sm btn-outline-secondary"
-                                                onclick="openEditor(
-                                                    'potentials',
-                                                    '${row.id}'
-                                                )"
-                                            >
-
-                                                <i class="bi bi-pencil me-1"></i>
-
-                                                Edit
-
-                                            </button>
-
-
-                                            <button
-                                                class="btn btn-sm btn-outline-danger"
-                                                onclick="delRow(
-                                                    'potentials',
-                                                    '${row.id}'
-                                                )"
-                                            >
-
-                                                <i class="bi bi-trash me-1"></i>
-
-                                                Hapus
-
-                                            </button>
-
-
-                                        </div>
-
-
-                                    </div>
-
-
-                                </div>
-
-                            </div>
-
-                            `
-                        )
-
-                        .join('')
-
-                }
-
-                `
-
-                :
-
-                `
-
-                <div class="col-12">
-
-                    <div class="empty-box">
-
-                        Belum ada data potensi.
-
-                        <br>
-
-                        Klik
-                        <b>Tambah Potensi</b>
-                        untuk menambahkan data.
-
-                    </div>
-
-                </div>
-
-                `;
-
-    }
-
-
-    // ============================================================
-    // RENDER WISATA
-    // ============================================================
-
-    function renderWisata() {
-
-        const rows =
-            cache.wisata || [];
-
-
-        $('#wisataList').innerHTML =
-
-            rows.length
-
-                ?
-
-                `
-
-                ${
-
-                    rows
-
-                        .map(
-                            row => `
-
-                            <div
-                                class="col-md-6 col-lg-4"
-                            >
-
-                                <div
-                                    class="potensi-card"
-                                >
-
-
-                                    ${
-                                        row.image_url
-
-                                            ?
-
-                                            `
-
-                                            <img
-                                                src="${esc(row.image_url)}"
-                                                alt="${esc(row.name)}"
-                                            >
-
-                                            `
-
-                                            :
-
-                                            `
-
-                                            <div
-                                                class="d-flex align-items-center justify-content-center bg-light"
-                                                style="height:210px"
-                                            >
-
-                                                <span class="text-muted">
-
-                                                    Belum ada foto
-
-                                                </span>
-
-                                            </div>
-
-                                            `
-                                    }
-
-
-                                    <div
-                                        class="potensi-body"
-                                    >
-
-
-                                        <div
-                                            class="potensi-title mb-2"
-                                        >
-
-                                            ${esc(
-                                                row.name
-                                            )}
-
-                                        </div>
-
-
-                                        <div
-                                            class="potensi-description mb-3"
-                                        >
-
-                                            ${esc(
-                                                row.description ||
-                                                ''
-                                            )}
-
-                                        </div>
-
-
-                                        <div
-                                            class="d-flex gap-2"
-                                        >
-
-
-                                            <button
-                                                class="btn btn-sm btn-outline-secondary"
-                                                onclick="openEditor(
-                                                    'wisata',
-                                                    '${row.id}'
-                                                )"
-                                            >
-
-                                                <i class="bi bi-pencil me-1"></i>
-
-                                                Edit
-
-                                            </button>
-
-
-                                            <button
-                                                class="btn btn-sm btn-outline-danger"
-                                                onclick="delRow(
-                                                    'wisata',
-                                                    '${row.id}'
-                                                )"
-                                            >
-
-                                                <i class="bi bi-trash me-1"></i>
-
-                                                Hapus
-
-                                            </button>
-
-
-                                        </div>
-
-
-                                    </div>
-
-
-                                </div>
-
-                            </div>
-
-                            `
-                        )
-
-                        .join('')
-
-                }
-
-                `
-
-                :
-
-                `
-
-                <div class="col-12">
-
-                    <div class="empty-box">
-
-                        Belum ada data wisata.
-
-                        <br>
-
-                        Klik
-                        <b>Tambah Wisata</b>
-                        untuk menambahkan data.
-
-                    </div>
-
-                </div>
-
-                `;
-
-    }
-
-
-    // ============================================================
-    // GALLERY
-    // ============================================================
-
-    function renderGallery() {
-
-        $('#galleryList').innerHTML =
-
-            cache.gallery
-
-                .map(
-                    row => `
-
-                    <div
-                        class="col-6 col-md-4 col-lg-3"
-                    >
-
-                        <div
-                            class="cardx p-2 h-100"
-                        >
-
-
-                            <img
-                                src="${esc(row.image_url)}"
-                                class="img-preview"
-                                alt="${esc(row.title)}"
-                            >
-
-
-                            <b
-                                class="small d-block p-2"
-                            >
-
-                                ${esc(row.title)}
-
-                            </b>
-
-
-                            <div
-                                class="px-2 pb-2 small text-muted truncate"
-                            >
-
-                                ${esc(
-                                    row.description
-                                )}
-
-                            </div>
-
-
-                            <div class="p-2">
-
-
-                                <button
-                                    class="btn btn-sm btn-outline-secondary"
-                                    onclick="openEditor(
-                                        'gallery',
-                                        '${row.id}'
-                                    )"
-                                >
-
-                                    Edit
-
-                                </button>
-
-
-                                <button
-                                    class="btn btn-sm btn-outline-danger"
-                                    onclick="delRow(
-                                        'gallery',
-                                        '${row.id}'
-                                    )"
-                                >
-
-                                    Hapus
-
-                                </button>
-
-
-                            </div>
-
-
-                        </div>
-
-                    </div>
-
-                    `
-                )
-
-                .join('')
-
-            ||
-
-            `
-
-            <div class="col-12 text-muted">
-
-                Belum ada foto.
-
-            </div>
-
-            `;
-
-    }
-
-
-    // ============================================================
-    // DOCUMENTS
-    // ============================================================
-
-    function renderDocs() {
-
-        $('#docList').innerHTML = `
+        container.innerHTML = `
 
             <table
                 class="table table-hover align-middle"
@@ -1497,13 +723,13 @@
 
                     <tr>
 
-                        <th>Dokumen</th>
+                        <th>Tahun</th>
+
+                        <th>Judul</th>
 
                         <th>Kategori</th>
 
-                        <th>Tahun</th>
-
-                        <th>File</th>
+                        <th>Deskripsi</th>
 
                         <th class="text-end">
                             Aksi
@@ -1513,135 +739,201 @@
 
                 </thead>
 
-
                 <tbody>
 
                     ${
+                        rows.map(row => `
 
-                        cache.documents
+                            <tr>
 
-                            .map(
-                                row => `
+                                <td>
+                                    ${esc(
+                                        row.tahun ||
+                                        ""
+                                    )}
+                                </td>
 
-                                <tr>
+                                <td>
+                                    <b>
+                                        ${esc(
+                                            row.judul ||
+                                            ""
+                                        )}
+                                    </b>
+                                </td>
 
-                                    <td>
+                                <td>
+                                    ${esc(
+                                        row.kategori ||
+                                        ""
+                                    )}
+                                </td>
 
-                                        <b>
-                                            ${esc(row.title)}
-                                        </b>
+                                <td>
+                                    <div class="truncate">
+                                        ${esc(
+                                            row.deskripsi ||
+                                            ""
+                                        )}
+                                    </div>
+                                </td>
 
-                                        <br>
+                                <td
+                                    class="text-end text-nowrap"
+                                >
 
-                                        <small
-                                            class="text-muted"
-                                        >
-
-                                            ${esc(
-                                                row.description
-                                            )}
-
-                                        </small>
-
-                                    </td>
-
-
-                                    <td>
-                                        ${esc(row.category)}
-                                    </td>
-
-
-                                    <td>
-                                        ${esc(row.year || '')}
-                                    </td>
-
-
-                                    <td>
-
-                                        <a
-                                            href="${esc(row.file_url)}"
-                                            target="_blank"
-                                            rel="noopener"
-                                        >
-
-                                            Buka
-
-                                        </a>
-
-                                    </td>
-
-
-                                    <td
-                                        class="text-end text-nowrap"
+                                    <button
+                                        class="btn btn-sm btn-outline-secondary"
+                                        onclick="openEditor(
+                                            'transparansi',
+                                            '${row.id}'
+                                        )"
                                     >
+                                        Edit
+                                    </button>
 
-                                        <button
-                                            class="btn btn-sm btn-outline-secondary"
-                                            onclick="openEditor(
-                                                'documents',
-                                                '${row.id}'
-                                            )"
-                                        >
-                                            Edit
-                                        </button>
+                                    <button
+                                        class="btn btn-sm btn-outline-danger"
+                                        onclick="delRow(
+                                            'transparansi',
+                                            '${row.id}'
+                                        )"
+                                    >
+                                        Hapus
+                                    </button>
 
+                                </td>
 
-                                        <button
-                                            class="btn btn-sm btn-outline-danger"
-                                            onclick="delRow(
-                                                'documents',
-                                                '${row.id}'
-                                            )"
-                                        >
-                                            Hapus
-                                        </button>
+                            </tr>
 
-                                    </td>
-
-                                </tr>
-
-                                `
-                            )
-
-                            .join('')
-
-                        ||
+                        `).join("") ||
 
                         `
+                            <tr>
 
-                        <tr>
+                                <td
+                                    colspan="5"
+                                    class="text-muted"
+                                >
+                                    Belum ada informasi
+                                    transparansi.
+                                </td>
 
-                            <td
-                                colspan="5"
-                                class="text-muted"
-                            >
-
-                                Belum ada dokumen.
-
-                            </td>
-
-                        </tr>
-
+                            </tr>
                         `
-
                     }
 
                 </tbody>
 
             </table>
-
         `;
-
     }
 
+    // =========================================================
+    // GALLERY
+    // =========================================================
 
-    // ============================================================
-    // MESSAGES
-    // ============================================================
+    function renderGallery() {
+
+        const container =
+            $("#galleryList");
+
+        if (!container) {
+            return;
+        }
+
+        container.innerHTML =
+            cache.gallery.map(
+                x => `
+
+                    <div
+                        class="col-6 col-md-4 col-lg-3"
+                    >
+
+                        <div
+                            class="cardx p-2 h-100"
+                        >
+
+                            <img
+                                src="${esc(
+                                    x.image_url
+                                )}"
+                                class="img-preview"
+                                alt="${esc(
+                                    x.title
+                                )}"
+                            >
+
+                            <b
+                                class="small d-block p-2"
+                            >
+                                ${esc(
+                                    x.title
+                                )}
+                            </b>
+
+                            <div
+                                class="px-2 pb-2 small text-muted truncate"
+                            >
+                                ${esc(
+                                    x.description
+                                )}
+                            </div>
+
+                            <div class="p-2">
+
+                                <button
+                                    class="btn btn-sm btn-outline-secondary"
+                                    onclick="openEditor(
+                                        'gallery',
+                                        '${x.id}'
+                                    )"
+                                >
+                                    Edit
+                                </button>
+
+                                <button
+                                    class="btn btn-sm btn-outline-danger"
+                                    onclick="delRow(
+                                        'gallery',
+                                        '${x.id}'
+                                    )"
+                                >
+                                    Hapus
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+                `
+            ).join("") ||
+
+            `
+                <div class="col-12 text-muted">
+                    Belum ada foto.
+                </div>
+            `;
+    }
+
+    // =========================================================
+    // PESAN
+    // =========================================================
 
     function renderMessages() {
 
-        $('#messageList').innerHTML = `
+        const container =
+            $("#messageList");
+
+        if (!container) {
+            return;
+        }
+
+        const rows =
+            cache.messages || [];
+
+        container.innerHTML = `
 
             <table
                 class="table table-hover align-middle"
@@ -1667,185 +959,183 @@
 
                 </thead>
 
-
                 <tbody>
 
                     ${
+                        rows.map(x => `
 
-                        cache.messages
+                            <tr>
 
-                            .map(
-                                row => `
+                                <td>
 
-                                <tr>
+                                    <b>
+                                        ${esc(
+                                            x.name ||
+                                            ""
+                                        )}
+                                    </b>
 
-                                    <td>
+                                    <br>
 
-                                        <b>
-                                            ${esc(row.name)}
-                                        </b>
+                                    <small>
+                                        ${esc(
+                                            x.email ||
+                                            ""
+                                        )}
+                                    </small>
 
-                                        <br>
+                                </td>
 
-                                        <small>
-                                            ${esc(row.email)}
-                                        </small>
+                                <td>
+                                    ${esc(
+                                        x.subject ||
+                                        ""
+                                    )}
+                                </td>
 
-                                    </td>
+                                <td>
 
+                                    <div
+                                        class="truncate"
+                                    >
+                                        ${esc(
+                                            x.message ||
+                                            ""
+                                        )}
+                                    </div>
 
-                                    <td>
-                                        ${esc(row.subject)}
-                                    </td>
+                                </td>
 
+                                <td>
 
-                                    <td>
+                                    <span
+                                        class="badge ${
+                                            x.status ===
+                                            "baru"
 
-                                        <div class="truncate">
+                                                ? "text-bg-danger"
 
-                                            ${esc(row.message)}
+                                                : x.status ===
+                                                  "dibaca"
 
-                                        </div>
+                                                ? "text-bg-warning"
 
-                                    </td>
+                                                : "text-bg-success"
+                                        }"
+                                    >
+                                        ${esc(
+                                            x.status ||
+                                            "baru"
+                                        )}
+                                    </span>
 
+                                </td>
 
-                                    <td>
+                                <td
+                                    class="text-end text-nowrap"
+                                >
 
-                                        <span
-                                            class="badge ${
-                                                row.status === 'baru'
-
-                                                    ? 'text-bg-danger'
-
-                                                    :
-
-                                                row.status === 'dibaca'
-
-                                                    ? 'text-bg-warning'
-
-                                                    :
-
-                                                    'text-bg-success'
-                                            }"
-                                        >
-
-                                            ${esc(row.status)}
-
-                                        </span>
-
-                                    </td>
-
-
-                                    <td
-                                        class="text-end text-nowrap"
+                                    <select
+                                        class="form-select form-select-sm d-inline-block"
+                                        style="width:auto"
+                                        onchange="
+                                            msgStatus(
+                                                '${x.id}',
+                                                this.value
+                                            )
+                                        "
                                     >
 
-                                        <select
-                                            class="form-select form-select-sm d-inline-block"
-                                            style="width:auto"
-                                            onchange="msgStatus(
-                                                '${row.id}',
-                                                this.value
-                                            )"
+                                        <option
+                                            value="baru"
+                                            ${
+                                                x.status ===
+                                                "baru"
+                                                    ? "selected"
+                                                    : ""
+                                            }
                                         >
+                                            Baru
+                                        </option>
 
-                                            <option
-                                                value="baru"
-                                                ${
-                                                    row.status === 'baru'
-                                                        ? 'selected'
-                                                        : ''
-                                                }
-                                            >
-                                                Baru
-                                            </option>
+                                        <option
+                                            value="dibaca"
+                                            ${
+                                                x.status ===
+                                                "dibaca"
+                                                    ? "selected"
+                                                    : ""
+                                            }
+                                        >
+                                            Dibaca
+                                        </option>
 
+                                        <option
+                                            value="dibalas"
+                                            ${
+                                                x.status ===
+                                                "dibalas"
+                                                    ? "selected"
+                                                    : ""
+                                            }
+                                        >
+                                            Dibalas
+                                        </option>
 
-                                            <option
-                                                value="dibaca"
-                                                ${
-                                                    row.status === 'dibaca'
-                                                        ? 'selected'
-                                                        : ''
-                                                }
-                                            >
-                                                Dibaca
-                                            </option>
+                                    </select>
 
-
-                                            <option
-                                                value="dibalas"
-                                                ${
-                                                    row.status === 'dibalas'
-                                                        ? 'selected'
-                                                        : ''
-                                                }
-                                            >
-                                                Dibalas
-                                            </option>
-
-                                        </select>
-
-
-                                        <button
-                                            class="btn btn-sm btn-outline-danger"
-                                            onclick="delRow(
+                                    <button
+                                        class="btn btn-sm btn-outline-danger"
+                                        onclick="
+                                            delRow(
                                                 'messages',
-                                                '${row.id}'
-                                            )"
-                                        >
+                                                '${x.id}'
+                                            )
+                                        "
+                                    >
+                                        Hapus
+                                    </button>
 
-                                            Hapus
+                                </td>
 
-                                        </button>
+                            </tr>
 
-                                    </td>
-
-                                </tr>
-
-                                `
-                            )
-
-                            .join('')
-
-                        ||
+                        `).join("") ||
 
                         `
+                            <tr>
 
-                        <tr>
+                                <td
+                                    colspan="5"
+                                    class="text-muted"
+                                >
+                                    Belum ada pesan.
+                                </td>
 
-                            <td
-                                colspan="5"
-                                class="text-muted"
-                            >
-
-                                Belum ada pesan.
-
-                            </td>
-
-                        </tr>
-
+                            </tr>
                         `
-
                     }
 
                 </tbody>
 
             </table>
-
         `;
-
     }
 
-
-    // ============================================================
-    // ADMINS
-    // ============================================================
+    // =========================================================
+    // ADMIN
+    // =========================================================
 
     function renderAdmins() {
 
-        $('#adminList').innerHTML = `
+        const container =
+            $("#adminList");
+
+        if (!container) {
+            return;
+        }
+
+        container.innerHTML = `
 
             <table
                 class="table table-hover align-middle"
@@ -1856,13 +1146,9 @@
                     <tr>
 
                         <th>Nama</th>
-
                         <th>Email</th>
-
                         <th>Peran</th>
-
                         <th>Dibuat</th>
-
                         <th class="text-end">
                             Aksi
                         </th>
@@ -1871,60 +1157,50 @@
 
                 </thead>
 
-
                 <tbody>
 
                     ${
-
-                        cache.admin_users
-
-                            .map(
-                                row => `
+                        cache.admin_users.map(
+                            x => `
 
                                 <tr>
 
                                     <td>
-                                        ${esc(row.name || '-')}
+                                        ${esc(
+                                            x.name ||
+                                            "-"
+                                        )}
                                     </td>
 
                                     <td>
-                                        ${esc(row.email)}
+                                        ${esc(
+                                            x.email ||
+                                            ""
+                                        )}
                                     </td>
 
                                     <td>
-
                                         <span
                                             class="badge text-bg-light"
                                         >
-
-                                            ${esc(row.role)}
-
+                                            ${esc(
+                                                x.role ||
+                                                ""
+                                            )}
                                         </span>
-
                                     </td>
-
 
                                     <td>
-
                                         ${
-                                            row.created_at
-
-                                                ?
-
-                                                new Date(
-                                                    row.created_at
+                                            x.created_at
+                                                ? new Date(
+                                                    x.created_at
+                                                ).toLocaleDateString(
+                                                    "id-ID"
                                                 )
-                                                    .toLocaleDateString(
-                                                        'id-ID'
-                                                    )
-
-                                                :
-
-                                                '-'
+                                                : ""
                                         }
-
                                     </td>
-
 
                                     <td
                                         class="text-end"
@@ -1932,147 +1208,124 @@
 
                                         <button
                                             class="btn btn-sm btn-outline-danger"
-                                            onclick="removeAdmin(
-                                                '${esc(row.email)}'
-                                            )"
+                                            onclick="
+                                                removeAdmin(
+                                                    '${esc(
+                                                        x.email
+                                                    )}'
+                                                )
+                                            "
                                         >
-
                                             Hapus Admin
-
                                         </button>
 
                                     </td>
 
                                 </tr>
-
-                                `
-                            )
-
-                            .join('')
-
-                        ||
+                            `
+                        ).join("") ||
 
                         `
+                            <tr>
 
-                        <tr>
+                                <td
+                                    colspan="5"
+                                    class="text-muted"
+                                >
+                                    Belum ada Admin.
+                                </td>
 
-                            <td
-                                colspan="5"
-                                class="text-muted"
-                            >
-
-                                Belum ada Admin.
-
-                            </td>
-
-                        </tr>
-
+                            </tr>
                         `
-
                     }
 
                 </tbody>
 
             </table>
-
         `;
-
     }
 
-
-    // ============================================================
+    // =========================================================
     // SETTINGS
-    // ============================================================
+    // =========================================================
 
     function fillSettings(site) {
 
-        const values = [
+        const fields = [
 
-            ['sname', site.name],
+            ["sname", site.name],
 
-            ['sloc', site.location],
+            ["sloc", site.location],
 
-            ['shead', site.head_village],
+            ["shead", site.head_village],
 
-            ['sarea', site.area],
+            ["sarea", site.area],
 
-            ['spop', site.population],
+            ["spop", site.population],
 
-            ['skk', site.kk],
+            ["skk", site.kk],
 
-            ['sdusun', site.dusun],
+            ["sdusun", site.dusun],
 
-            ['sap', site.aparatur],
+            ["sap", site.aparatur],
 
-            ['semail', site.email],
+            ["semail", site.email],
 
-            ['sphone', site.phone],
+            ["sphone", site.phone],
 
-            ['saddress', site.address],
+            ["saddress", site.address],
 
-            ['spostal', site.postal_code],
+            ["spostal", site.postal_code],
 
-            ['shours', site.office_hours]
+            [
+                "shours",
+                site.office_hours
+            ]
 
         ];
 
-
-        values.forEach(
+        fields.forEach(
             ([id, value]) => {
 
                 const element =
-                    $('#' + id);
-
+                    $("#" + id);
 
                 if (element) {
-
                     element.value =
-                        value ?? '';
-
+                        value ?? "";
                 }
 
             }
         );
-
     }
 
-
-    // ============================================================
-    // TITLES
-    // ============================================================
+    // =========================================================
+    // EDITOR
+    // =========================================================
 
     const titles = {
 
         news:
-            'Berita',
+            "Berita",
 
         agenda:
-            'Agenda',
+            "Agenda",
 
         gallery:
-            'Galeri',
+            "Galeri",
 
         potentials:
-            'Potensi',
-
-        wisata:
-            'Wisata',
+            "Potensi",
 
         services:
-            'Layanan',
+            "Layanan",
+
+        transparansi:
+            "Transparansi",
 
         faqs:
-            'FAQ',
-
-        documents:
-            'Dokumen Transparansi'
-
+            "FAQ"
     };
-
-
-    // ============================================================
-    // OPEN EDITOR
-    // ============================================================
 
     function openEditor(
         type,
@@ -2080,60 +1333,30 @@
     ) {
 
         current = {
-
-            type:
-                type,
-
-            id:
-                id
-
+            type,
+            id
         };
 
-
-        const item =
-
+        const data =
             id
-
-                ?
-
-                (
+                ? (
                     cache[type] || []
-                )
-                    .find(
-                        x =>
-                            x.id === id
-                    )
+                ).find(
+                    x =>
+                        String(x.id) ===
+                        String(id)
+                ) || {}
+                : {};
 
-                ||
-
-                {}
-
-                :
-
-                {};
-
-
-        $('#editorTitle').textContent =
-
-            (
-                id
-                    ? 'Edit '
-                    : 'Tambah '
-            )
-
-            +
-
+        $("#editorTitle").textContent =
+            (id ? "Edit " : "Tambah ") +
             titles[type];
 
+        let html = "";
 
-        let html = '';
-
-
-        // ========================================================
         // BERITA
-        // ========================================================
 
-        if (type === 'news') {
+        if (type === "news") {
 
             html = `
 
@@ -2142,50 +1365,51 @@
                     class="form-control mb-2"
                     placeholder="Judul berita"
                     required
-                    value="${esc(item.title)}"
+                    value="${esc(
+                        data.title
+                    )}"
                 >
-
 
                 <input
                     name="cat"
                     class="form-control mb-2"
                     placeholder="Kategori"
-                    value="${esc(item.cat)}"
+                    value="${esc(
+                        data.cat
+                    )}"
                 >
-
 
                 <input
                     name="date"
                     type="date"
                     class="form-control mb-2"
-                    value="${item.date || ''}"
+                    value="${
+                        data.date || ""
+                    }"
                 >
-
 
                 <textarea
                     name="summary"
                     class="form-control mb-2"
                     placeholder="Ringkasan"
-                >${esc(item.summary)}</textarea>
-
+                >${esc(
+                    data.summary
+                )}</textarea>
 
                 <textarea
                     name="body"
                     rows="8"
                     class="form-control"
                     placeholder="Isi berita"
-                >${esc(item.body)}</textarea>
-
+                >${esc(
+                    data.body
+                )}</textarea>
             `;
-
         }
 
-
-        // ========================================================
         // AGENDA
-        // ========================================================
 
-        if (type === 'agenda') {
+        if (type === "agenda") {
 
             html = `
 
@@ -2194,398 +1418,87 @@
                     class="form-control mb-2"
                     placeholder="Nama kegiatan"
                     required
-                    value="${esc(item.title)}"
+                    value="${esc(
+                        data.title
+                    )}"
                 >
-
 
                 <input
                     name="date"
                     type="date"
                     class="form-control mb-2"
-                    value="${item.date || ''}"
+                    value="${
+                        data.date || ""
+                    }"
                 >
-
 
                 <input
                     name="time"
                     class="form-control mb-2"
                     placeholder="Jam"
-                    value="${esc(item.time)}"
+                    value="${esc(
+                        data.time
+                    )}"
                 >
-
 
                 <input
                     name="place"
                     class="form-control mb-2"
                     placeholder="Lokasi"
-                    value="${esc(item.place)}"
+                    value="${esc(
+                        data.place
+                    )}"
                 >
-
 
                 <textarea
                     name="description"
                     class="form-control"
                     placeholder="Deskripsi"
-                >${esc(item.description)}</textarea>
-
+                >${esc(
+                    data.description
+                )}</textarea>
             `;
-
         }
 
-
-        // ========================================================
-        // GALLERY
-        // ========================================================
-
-        if (type === 'gallery') {
-
-            html = `
-
-                <input
-                    name="title"
-                    class="form-control mb-2"
-                    placeholder="Judul foto"
-                    required
-                    value="${esc(item.title)}"
-                >
-
-
-                <textarea
-                    name="description"
-                    class="form-control mb-2"
-                    placeholder="Keterangan"
-                >${esc(item.description)}</textarea>
-
-
-                ${
-                    item.image_url
-
-                        ?
-
-                        `
-
-                        <img
-                            src="${esc(item.image_url)}"
-                            class="preview-large mb-3"
-                            alt="${esc(item.title)}"
-                        >
-
-                        `
-
-                        :
-
-                        ''
-                }
-
-
-                <label
-                    class="form-label"
-                >
-
-                    Foto
-
-                </label>
-
-
-                <input
-                    name="file"
-                    type="file"
-                    accept="image/*"
-                    class="form-control"
-                >
-
-
-                <small
-                    class="text-muted"
-                >
-
-                    Saat edit, foto boleh dikosongkan
-                    untuk mempertahankan foto lama.
-
-                </small>
-
-            `;
-
-        }
-
-
-        // ========================================================
         // POTENSI
-        // ========================================================
 
-        if (type === 'potentials') {
+        if (type === "potentials") {
 
             html = `
 
-                <label
-                    class="form-label"
-                >
-
-                    Nama Hasil Bumi / Potensi
-
-                </label>
-
-
                 <input
                     name="name"
-                    class="form-control mb-3"
-                    placeholder="Contoh: Padi"
+                    class="form-control mb-2"
+                    placeholder="Nama potensi"
                     required
-                    value="${esc(item.name)}"
+                    value="${esc(
+                        data.name
+                    )}"
                 >
 
-
-                <label
-                    class="form-label"
-                >
-
-                    Kategori
-
-                </label>
-
-
-                <select
+                <input
                     name="cat"
-                    class="form-select mb-3"
-                >
-
-                    <option value="">
-                        Pilih kategori
-                    </option>
-
-
-                    <option
-                        value="Hasil Bumi"
-                        ${
-                            item.cat === 'Hasil Bumi'
-                                ? 'selected'
-                                : ''
-                        }
-                    >
-                        Hasil Bumi
-                    </option>
-
-
-                    <option
-                        value="Pertanian"
-                        ${
-                            item.cat === 'Pertanian'
-                                ? 'selected'
-                                : ''
-                        }
-                    >
-                        Pertanian
-                    </option>
-
-
-                    <option
-                        value="Perkebunan"
-                        ${
-                            item.cat === 'Perkebunan'
-                                ? 'selected'
-                                : ''
-                        }
-                    >
-                        Perkebunan
-                    </option>
-
-
-                    <option
-                        value="Peternakan"
-                        ${
-                            item.cat === 'Peternakan'
-                                ? 'selected'
-                                : ''
-                        }
-                    >
-                        Peternakan
-                    </option>
-
-
-                    <option
-                        value="UMKM"
-                        ${
-                            item.cat === 'UMKM'
-                                ? 'selected'
-                                : ''
-                        }
-                    >
-                        UMKM
-                    </option>
-
-                </select>
-
-
-                <label
-                    class="form-label"
-                >
-
-                    Foto
-
-                </label>
-
-
-                ${
-                    item.image_url
-
-                        ?
-
-                        `
-
-                        <img
-                            src="${esc(item.image_url)}"
-                            class="preview-large mb-3"
-                            alt="${esc(item.name)}"
-                        >
-
-                        `
-
-                        :
-
-                        ''
-                }
-
-
-                <input
-                    name="file"
-                    type="file"
-                    accept="image/*"
                     class="form-control mb-2"
+                    placeholder="Kategori"
+                    value="${esc(
+                        data.cat
+                    )}"
                 >
-
-
-                <small
-                    class="text-muted d-block mb-3"
-                >
-
-                    Pilih foto Padi, Jagung, Ubi,
-                    Kelapa, Kopi, Kakao, Kemiri,
-                    Pisang, dan hasil bumi lainnya.
-
-                </small>
-
-
-                <label
-                    class="form-label"
-                >
-
-                    Deskripsi
-
-                </label>
-
 
                 <textarea
                     name="description"
-                    rows="7"
+                    rows="6"
                     class="form-control"
-                    placeholder="Tuliskan deskripsi hasil bumi..."
-                >${esc(item.description)}</textarea>
-
+                    placeholder="Deskripsi"
+                >${esc(
+                    data.description
+                )}</textarea>
             `;
-
         }
 
+        // LAYANAN
 
-        // ========================================================
-        // WISATA
-        // ========================================================
-
-        if (type === 'wisata') {
-
-            html = `
-
-                <label
-                    class="form-label"
-                >
-
-                    Nama Tempat Wisata
-
-                </label>
-
-
-                <input
-                    name="name"
-                    class="form-control mb-3"
-                    placeholder="Contoh: Pantai ..."
-                    required
-                    value="${esc(item.name)}"
-                >
-
-
-                <label
-                    class="form-label"
-                >
-
-                    Foto Wisata
-
-                </label>
-
-
-                ${
-                    item.image_url
-
-                        ?
-
-                        `
-
-                        <img
-                            src="${esc(item.image_url)}"
-                            class="preview-large mb-3"
-                            alt="${esc(item.name)}"
-                        >
-
-                        `
-
-                        :
-
-                        ''
-                }
-
-
-                <input
-                    name="file"
-                    type="file"
-                    accept="image/*"
-                    class="form-control mb-2"
-                >
-
-
-                <small
-                    class="text-muted d-block mb-3"
-                >
-
-                    Gunakan foto tempat wisata
-                    yang jelas.
-
-                </small>
-
-
-                <label
-                    class="form-label"
-                >
-
-                    Deskripsi Lengkap
-
-                </label>
-
-
-                <textarea
-                    name="description"
-                    rows="9"
-                    class="form-control"
-                    placeholder="Tuliskan deskripsi lengkap tempat wisata..."
-                >${esc(item.description)}</textarea>
-
-            `;
-
-        }
-
-
-        // ========================================================
-        // SERVICES
-        // ========================================================
-
-        if (type === 'services') {
+        if (type === "services") {
 
             html = `
 
@@ -2594,789 +1507,469 @@
                     class="form-control mb-2"
                     placeholder="Nama layanan"
                     required
-                    value="${esc(item.name)}"
+                    value="${esc(
+                        data.name
+                    )}"
                 >
-
 
                 <textarea
                     name="description"
                     rows="6"
                     class="form-control"
                     placeholder="Deskripsi layanan"
-                >${esc(item.description)}</textarea>
-
+                >${esc(
+                    data.description
+                )}</textarea>
             `;
-
         }
 
-
-        // ========================================================
         // FAQ
-        // ========================================================
+        // PENTING:
+        // menggunakan q dan a
 
-        if (type === 'faqs') {
+        if (type === "faqs") {
 
             html = `
 
-                <input
-                    name="q"
-                    class="form-control mb-2"
-                    placeholder="Pertanyaan"
-                    required
-                    value="${esc(item.q)}"
-                >
+                <div class="mb-3">
 
+                    <label
+                        class="form-label fw-semibold"
+                    >
+                        Pertanyaan
+                    </label>
 
-                <textarea
-                    name="a"
-                    rows="6"
-                    class="form-control"
-                    placeholder="Jawaban"
-                >${esc(item.a)}</textarea>
+                    <input
+                        name="q"
+                        class="form-control"
+                        placeholder="Contoh: Bagaimana cara mengurus surat?"
+                        required
+                        value="${esc(
+                            data.q
+                        )}"
+                    >
 
+                </div>
+
+                <div>
+
+                    <label
+                        class="form-label fw-semibold"
+                    >
+                        Jawaban
+                    </label>
+
+                    <textarea
+                        name="a"
+                        rows="7"
+                        class="form-control"
+                        placeholder="Tuliskan jawaban..."
+                        required
+                    >${esc(
+                        data.a
+                    )}</textarea>
+
+                </div>
             `;
-
         }
 
+        // TRANSPARANSI
+        // menggunakan tabel transparansi
 
-        // ========================================================
-        // DOCUMENTS
-        // ========================================================
+        if (type === "transparansi") {
 
-        if (type === 'documents') {
+            html = `
+
+                <div class="row g-3">
+
+                    <div class="col-md-4">
+
+                        <label
+                            class="form-label fw-semibold"
+                        >
+                            Tahun
+                        </label>
+
+                        <input
+                            name="tahun"
+                            type="number"
+                            class="form-control"
+                            placeholder="2026"
+                            required
+                            value="${esc(
+                                data.tahun
+                            )}"
+                        >
+
+                    </div>
+
+                    <div class="col-md-8">
+
+                        <label
+                            class="form-label fw-semibold"
+                        >
+                            Judul
+                        </label>
+
+                        <input
+                            name="judul"
+                            class="form-control"
+                            placeholder="Contoh: APBDes Desa Fataatu Timur Tahun 2026"
+                            required
+                            value="${esc(
+                                data.judul
+                            )}"
+                        >
+
+                    </div>
+
+                    <div class="col-12">
+
+                        <label
+                            class="form-label fw-semibold"
+                        >
+                            Kategori
+                        </label>
+
+                        <input
+                            name="kategori"
+                            class="form-control"
+                            placeholder="APBDes / Realisasi / Dana Desa / Laporan"
+                            value="${esc(
+                                data.kategori
+                            )}"
+                        >
+
+                    </div>
+
+                    <div class="col-12">
+
+                        <label
+                            class="form-label fw-semibold"
+                        >
+                            Deskripsi
+                        </label>
+
+                        <textarea
+                            name="deskripsi"
+                            rows="6"
+                            class="form-control"
+                            placeholder="Keterangan dokumen atau informasi transparansi"
+                        >${esc(
+                            data.deskripsi
+                        )}</textarea>
+
+                    </div>
+
+                </div>
+
+            `;
+        }
+
+        // GALERI
+
+        if (type === "gallery") {
 
             html = `
 
                 <input
                     name="title"
                     class="form-control mb-2"
-                    placeholder="Nama dokumen"
+                    placeholder="Judul foto"
                     required
-                    value="${esc(item.title)}"
+                    value="${esc(
+                        data.title
+                    )}"
                 >
-
-
-                <div class="row g-2">
-
-                    <div class="col-md-5">
-
-                        <input
-                            name="category"
-                            class="form-control"
-                            placeholder="Kategori"
-                            value="${esc(
-                                item.category ||
-                                'Transparansi'
-                            )}"
-                        >
-
-                    </div>
-
-
-                    <div class="col-md-3">
-
-                        <input
-                            name="year"
-                            type="number"
-                            class="form-control"
-                            placeholder="Tahun"
-                            value="${esc(
-                                item.year ||
-                                ''
-                            )}"
-                        >
-
-                    </div>
-
-                </div>
-
 
                 <textarea
                     name="description"
-                    class="form-control mt-2"
-                    placeholder="Keterangan"
-                >${esc(item.description)}</textarea>
+                    class="form-control mb-2"
+                    placeholder="Keterangan foto"
+                >${esc(
+                    data.description
+                )}</textarea>
 
+                ${
+                    data.image_url
+                        ? `
+                            <img
+                                src="${esc(
+                                    data.image_url
+                                )}"
+                                class="img-preview mb-2"
+                            >
+                        `
+                        : ""
+                }
 
                 <input
                     name="file"
                     type="file"
-                    accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
-                    class="form-control mt-2"
+                    accept="image/*"
+                    class="form-control"
                 >
-
 
                 <small
                     class="text-muted"
                 >
-
-                    Saat edit, file boleh dikosongkan
-                    untuk mempertahankan file lama.
-
+                    Saat edit, file boleh dikosongkan.
                 </small>
-
             `;
-
         }
 
-
-        $('#editorBody').innerHTML =
+        $("#editorBody").innerHTML =
             html;
-
 
         bootstrap.Modal
             .getOrCreateInstance(
-                $('#editorModal')
+                $("#editorModal")
             )
             .show();
-
     }
 
-
-    // ============================================================
-    // UPLOAD FOTO
-    // ============================================================
-
-    async function uploadImage(
-        file,
-        folder
-    ) {
-
-        const safeName =
-            file.name
-                .replace(
-                    /[^a-zA-Z0-9._-]/g,
-                    '-'
-                );
-
-
-        const path =
-
-            folder +
-
-            '/' +
-
-            Date.now() +
-
-            '-' +
-
-            safeName;
-
-
-        const result =
-
-            await sb
-
-                .storage
-
-                .from('gallery')
-
-                .upload(
-                    path,
-                    file,
-                    {
-                        upsert: false,
-
-                        cacheControl:
-                            '3600'
-                    }
-                );
-
-
-        if (result.error) {
-
-            throw result.error;
-
-        }
-
-
-        const publicData =
-
-            sb
-
-                .storage
-
-                .from('gallery')
-
-                .getPublicUrl(
-                    path
-                );
-
-
-        return {
-
-            path:
-                path,
-
-            url:
-                publicData
-                    .data
-                    .publicUrl
-
-        };
-
-    }
-
-
-    // ============================================================
+    // =========================================================
     // SAVE EDITOR
-    // ============================================================
+    // =========================================================
 
-    async function saveEditor(e) {
+    async function saveEditor(event) {
 
-        e.preventDefault();
-
+        event.preventDefault();
 
         const form =
-            new FormData(
-                e.target
-            );
+            event.target;
 
+        const formData =
+            new FormData(form);
 
         const type =
             current.type;
 
-
         try {
-
 
             const data = {};
 
-
             for (
-                const [
-                    key,
-                    value
-                ]
-                of form.entries()
+                const [key, value]
+                of formData.entries()
             ) {
 
                 if (
-                    key !== 'file'
+                    key !== "file"
                 ) {
 
                     data[key] =
                         value;
-
                 }
-
             }
 
+            // ==============================================
+            // GALERI
+            // ==============================================
 
-            let newStoragePath =
-                null;
-
-
-            let oldStoragePath =
-                null;
-
-
-            // ====================================================
-            // POTENSI
-            // ====================================================
-
-            if (
-                type ===
-                'potentials'
-            ) {
+            if (type === "gallery") {
 
                 const file =
-                    form.get('file');
-
-
-                const old =
-
-                    current.id
-
-                        ?
-
-                        cache.potentials
-                            .find(
-                                x =>
-                                    x.id ===
-                                    current.id
-                            )
-
-                        :
-
-                        null;
-
-
-                oldStoragePath =
-                    old?.storage_path ||
-                    null;
-
+                    formData.get("file");
 
                 if (
                     file &&
                     file.size
                 ) {
-
-                    const uploaded =
-                        await uploadImage(
-                            file,
-                            'potentials'
-                        );
-
-
-                    data.image_url =
-                        uploaded.url;
-
-
-                    data.storage_path =
-                        uploaded.path;
-
-
-                    newStoragePath =
-                        uploaded.path;
-
-                }
-
-
-                else if (current.id) {
-
-                    data.image_url =
-                        old?.image_url ||
-                        '';
-
-
-                    data.storage_path =
-                        old?.storage_path ||
-                        '';
-
-                }
-
-
-                else {
-
-                    throw new Error(
-                        'Silakan pilih foto potensi.'
-                    );
-
-                }
-
-            }
-
-
-            // ====================================================
-            // WISATA
-            // ====================================================
-
-            if (
-                type ===
-                'wisata'
-            ) {
-
-                const file =
-                    form.get('file');
-
-
-                const old =
-
-                    current.id
-
-                        ?
-
-                        cache.wisata
-                            .find(
-                                x =>
-                                    x.id ===
-                                    current.id
-                            )
-
-                        :
-
-                        null;
-
-
-                oldStoragePath =
-                    old?.storage_path ||
-                    null;
-
-
-                if (
-                    file &&
-                    file.size
-                ) {
-
-                    const uploaded =
-                        await uploadImage(
-                            file,
-                            'wisata'
-                        );
-
-
-                    data.image_url =
-                        uploaded.url;
-
-
-                    data.storage_path =
-                        uploaded.path;
-
-
-                    newStoragePath =
-                        uploaded.path;
-
-                }
-
-
-                else if (current.id) {
-
-                    data.image_url =
-                        old?.image_url ||
-                        '';
-
-
-                    data.storage_path =
-                        old?.storage_path ||
-                        '';
-
-                }
-
-
-                else {
-
-                    throw new Error(
-                        'Silakan pilih foto wisata.'
-                    );
-
-                }
-
-            }
-
-
-            // ====================================================
-            // GALLERY
-            // ====================================================
-
-            if (
-                type ===
-                'gallery'
-            ) {
-
-                const file =
-                    form.get('file');
-
-
-                if (
-                    file &&
-                    file.size
-                ) {
-
-                    const uploaded =
-                        await uploadImage(
-                            file,
-                            'gallery'
-                        );
-
-
-                    data.image_url =
-                        uploaded.url;
-
-
-                    data.storage_path =
-                        uploaded.path;
-
-
-                    newStoragePath =
-                        uploaded.path;
-
-                }
-
-
-                else if (
-                    current.id
-                ) {
-
-                    const old =
-                        cache.gallery
-                            .find(
-                                x =>
-                                    x.id ===
-                                    current.id
-                            );
-
-
-                    data.image_url =
-                        old?.image_url ||
-                        '';
-
-
-                    data.storage_path =
-                        old?.storage_path ||
-                        '';
-
-                }
-
-
-                else {
-
-                    throw new Error(
-                        'Pilih foto.'
-                    );
-
-                }
-
-            }
-
-
-            // ====================================================
-            // DOCUMENTS
-            // ====================================================
-
-            if (
-                type ===
-                'documents'
-            ) {
-
-                const file =
-                    form.get('file');
-
-
-                if (
-                    file &&
-                    file.size
-                ) {
-
-                    const safeName =
-                        file.name
-                            .replace(
-                                /[^a-zA-Z0-9._-]/g,
-                                '-'
-                            );
-
 
                     const path =
-
-                        'documents/' +
-
+                        "gallery/" +
                         Date.now() +
-
-                        '-' +
-
-                        safeName;
-
+                        "-" +
+                        file.name.replace(
+                            /[^a-zA-Z0-9._-]/g,
+                            "-"
+                        );
 
                     const upload =
-                        await sb
-
-                            .storage
-
-                            .from('documents')
-
+                        await sb.storage
+                            .from("gallery")
                             .upload(
                                 path,
                                 file,
                                 {
-                                    upsert:false
+                                    upsert:
+                                        false
                                 }
                             );
 
-
-                    if (
-                        upload.error
-                    ) {
-
+                    if (upload.error) {
                         throw upload.error;
-
                     }
 
-
-                    data.file_url =
-
-                        sb
-
-                            .storage
-
-                            .from(
-                                'documents'
-                            )
-
+                    data.image_url =
+                        sb.storage
+                            .from("gallery")
                             .getPublicUrl(
                                 path
                             )
                             .data
                             .publicUrl;
 
-
                     data.storage_path =
                         path;
 
-                }
-
-
-                else if (
+                } else if (
                     current.id
                 ) {
 
                     const old =
-                        cache.documents
-                            .find(
-                                x =>
-                                    x.id ===
+                        cache.gallery.find(
+                            x =>
+                                String(x.id) ===
+                                String(
                                     current.id
-                            );
+                                )
+                        );
 
-
-                    data.file_url =
-                        old?.file_url ||
-                        '';
-
+                    data.image_url =
+                        old?.image_url ||
+                        "";
 
                     data.storage_path =
                         old?.storage_path ||
-                        '';
+                        "";
 
-                }
-
-
-                else {
+                } else {
 
                     throw new Error(
-                        'Pilih file dokumen.'
+                        "Pilih foto terlebih dahulu."
                     );
-
                 }
+            }
 
+            // ==============================================
+            // TRANSPARANSI
+            // ==============================================
 
-                data.year =
-                    data.year
+            if (
+                type ===
+                "transparansi"
+            ) {
+
+                data.tahun =
+                    data.tahun
                         ? Number(
-                            data.year
+                            data.tahun
                         )
                         : null;
 
+                data.judul =
+                    String(
+                        data.judul ||
+                        ""
+                    ).trim();
+
+                data.kategori =
+                    String(
+                        data.kategori ||
+                        ""
+                    ).trim();
+
+                data.deskripsi =
+                    String(
+                        data.deskripsi ||
+                        ""
+                    ).trim();
             }
 
+            // ==============================================
+            // FAQ
+            // ==============================================
 
-            // ====================================================
-            // INSERT / UPDATE
-            // ====================================================
+            if (
+                type === "faqs"
+            ) {
+
+                data.q =
+                    String(
+                        data.q || ""
+                    ).trim();
+
+                data.a =
+                    String(
+                        data.a || ""
+                    ).trim();
+
+                if (
+                    !data.q ||
+                    !data.a
+                ) {
+
+                    throw new Error(
+                        "Pertanyaan dan jawaban wajib diisi."
+                    );
+                }
+            }
+
+            // ==============================================
+            // UPDATE / INSERT
+            // ==============================================
+
+            let result;
 
             if (
                 current.id
             ) {
 
-                const result =
-
+                result =
                     await sb
-
                         .from(type)
-
                         .update(data)
-
                         .eq(
-                            'id',
+                            "id",
                             current.id
                         );
 
+            } else {
 
-                if (
-                    result.error
-                ) {
-
-                    throw result.error;
-
-                }
-
-            }
-
-            else {
-
-                const result =
-
+                result =
                     await sb
-
                         .from(type)
-
-                        .insert(
-                            data
-                        );
-
-
-                if (
-                    result.error
-                ) {
-
-                    throw result.error;
-
-                }
-
+                        .insert(data);
             }
-
-
-            // ====================================================
-            // HAPUS FOTO LAMA
-            // ====================================================
 
             if (
-                oldStoragePath &&
-                newStoragePath &&
-                oldStoragePath !==
-                    newStoragePath
+                result.error
             ) {
 
-                if (
-                    type ===
-                    'potentials'
-                    ||
-                    type ===
-                    'wisata'
-                    ||
-                    type ===
-                    'gallery'
-                ) {
-
-                    await sb
-
-                        .storage
-
-                        .from('gallery')
-
-                        .remove([
-                            oldStoragePath
-                        ]);
-
-                }
-
+                throw result.error;
             }
-
 
             bootstrap.Modal
                 .getOrCreateInstance(
-                    $('#editorModal')
+                    $("#editorModal")
                 )
                 .hide();
 
-
             toast(
-                'Data berhasil disimpan.'
+                "Data berhasil disimpan."
             );
-
 
             await loadAll();
 
+        } catch (error) {
 
-        }
-
-        catch (error) {
-
-            console.error(error);
+            console.error(
+                error
+            );
 
             toast(
                 error.message ||
-                'Gagal menyimpan data.',
-                'error'
+                "Gagal menyimpan data.",
+                "error"
             );
-
         }
-
     }
 
-
-    // ============================================================
+    // =========================================================
     // DELETE
-    // ============================================================
+    // =========================================================
 
     async function delRow(
         type,
@@ -3385,217 +1978,78 @@
 
         if (
             !confirm(
-                'Yakin ingin menghapus data ini?'
+                "Yakin ingin menghapus data ini?"
             )
         ) {
-
             return;
-
         }
-
 
         try {
 
-
-            // ====================================================
-            // DELETE FOTO POTENSI
-            // ====================================================
+            // Gallery storage
 
             if (
-                type ===
-                'potentials'
+                type === "gallery"
             ) {
 
                 const item =
-                    cache.potentials
-                        .find(
-                            x =>
-                                x.id ===
-                                id
-                        );
-
-
-                if (
-                    item?.storage_path
-                ) {
-
-                    await sb
-
-                        .storage
-
-                        .from('gallery')
-
-                        .remove([
-                            item.storage_path
-                        ]);
-
-                }
-
-            }
-
-
-            // ====================================================
-            // DELETE FOTO WISATA
-            // ====================================================
-
-            if (
-                type ===
-                'wisata'
-            ) {
-
-                const item =
-                    cache.wisata
-                        .find(
-                            x =>
-                                x.id ===
-                                id
-                        );
-
-
-                if (
-                    item?.storage_path
-                ) {
-
-                    await sb
-
-                        .storage
-
-                        .from('gallery')
-
-                        .remove([
-                            item.storage_path
-                        ]);
-
-                }
-
-            }
-
-
-            // ====================================================
-            // DELETE GALLERY
-            // ====================================================
-
-            if (
-                type ===
-                'gallery'
-            ) {
-
-                const item =
-                    cache.gallery
-                        .find(
-                            x =>
-                                x.id ===
-                                id
-                        );
-
-
-                if (
-                    item?.storage_path
-                ) {
-
-                    await sb
-
-                        .storage
-
-                        .from('gallery')
-
-                        .remove([
-                            item.storage_path
-                        ]);
-
-                }
-
-            }
-
-
-            // ====================================================
-            // DELETE DOCUMENT
-            // ====================================================
-
-            if (
-                type ===
-                'documents'
-            ) {
-
-                const item =
-                    cache.documents
-                        .find(
-                            x =>
-                                x.id ===
-                                id
-                        );
-
-
-                if (
-                    item?.storage_path
-                ) {
-
-                    await sb
-
-                        .storage
-
-                        .from('documents')
-
-                        .remove([
-                            item.storage_path
-                        ]);
-
-                }
-
-            }
-
-
-            const result =
-
-                await sb
-
-                    .from(type)
-
-                    .delete()
-
-                    .eq(
-                        'id',
-                        id
+                    cache.gallery.find(
+                        x =>
+                            String(x.id) ===
+                            String(id)
                     );
 
+                if (
+                    item?.storage_path
+                ) {
+
+                    await sb.storage
+                        .from("gallery")
+                        .remove([
+                            item.storage_path
+                        ]);
+                }
+            }
+
+            const result =
+                await sb
+                    .from(type)
+                    .delete()
+                    .eq(
+                        "id",
+                        id
+                    );
 
             if (
                 result.error
             ) {
 
                 throw result.error;
-
             }
 
-
             toast(
-                'Data berhasil dihapus.'
+                "Data berhasil dihapus."
             );
-
 
             await loadAll();
 
+        } catch (error) {
 
-        }
-
-        catch (error) {
-
-            console.error(error);
+            console.error(
+                error
+            );
 
             toast(
                 error.message ||
-                'Gagal menghapus data.',
-                'error'
+                "Gagal menghapus data.",
+                "error"
             );
-
         }
-
     }
 
-
-    // ============================================================
+    // =========================================================
     // SAVE PAGE
-    // ============================================================
+    // =========================================================
 
     async function savePage(
         slug
@@ -3603,80 +2057,71 @@
 
         try {
 
-
             const data = {
 
-                slug:
-                    slug,
+                slug,
 
                 title:
-                    $('#pt-' + slug)
-                        .value,
+                    $(
+                        "#pt-" +
+                        slug
+                    ).value,
 
                 subtitle:
-                    $('#ps-' + slug)
-                        .value,
+                    $(
+                        "#ps-" +
+                        slug
+                    ).value,
 
                 content:
-                    $('#pc-' + slug)
-                        .value,
+                    $(
+                        "#pc-" +
+                        slug
+                    ).value,
 
                 updated_at:
                     new Date()
                         .toISOString()
-
             };
 
-
             const result =
-
                 await sb
-
-                    .from('page_content')
-
+                    .from(
+                        "page_content"
+                    )
                     .upsert(
                         data,
                         {
                             onConflict:
-                                'slug'
+                                "slug"
                         }
                     );
-
 
             if (
                 result.error
             ) {
 
                 throw result.error;
-
             }
 
-
             toast(
-                'Konten berhasil disimpan.'
+                "Konten halaman berhasil disimpan."
             );
-
 
             await loadAll();
 
-
-        }
-
-        catch (error) {
+        } catch (error) {
 
             toast(
                 error.message,
-                'error'
+                "error"
             );
-
         }
-
     }
 
-
-    // ============================================================
+    // =========================================================
     // MESSAGE STATUS
-    // ============================================================
+    // =========================================================
 
     async function msgStatus(
         id,
@@ -3684,21 +2129,15 @@
     ) {
 
         const result =
-
             await sb
-
-                .from('messages')
-
+                .from("messages")
                 .update({
-                    status:
-                        status
+                    status
                 })
-
                 .eq(
-                    'id',
+                    "id",
                     id
                 );
-
 
         if (
             result.error
@@ -3706,221 +2145,177 @@
 
             toast(
                 result.error.message,
-                'error'
+                "error"
             );
 
-        }
-
-        else {
+        } else {
 
             toast(
-                'Status pesan diperbarui.'
+                "Status pesan diperbarui."
             );
 
-
             await loadAll();
-
         }
-
     }
 
-
-    // ============================================================
+    // =========================================================
     // SAVE SETTINGS
-    // ============================================================
+    // =========================================================
 
     async function saveSettings(
-        e
+        event
     ) {
 
-        e.preventDefault();
-
+        event.preventDefault();
 
         try {
 
-
             const data = {
 
-                id:1,
+                id: 1,
 
                 name:
-                    $('#sname').value,
+                    $("#sname").value,
 
                 location:
-                    $('#sloc').value,
+                    $("#sloc").value,
 
                 head_village:
-                    $('#shead').value,
+                    $("#shead").value,
 
                 area:
-                    $('#sarea').value,
+                    $("#sarea").value,
 
                 population:
                     Number(
-                        $('#spop').value ||
+                        $("#spop").value ||
                         0
                     ),
 
                 kk:
                     Number(
-                        $('#skk').value ||
+                        $("#skk").value ||
                         0
                     ),
 
                 dusun:
                     Number(
-                        $('#sdusun').value ||
+                        $("#sdusun").value ||
                         0
                     ),
 
                 aparatur:
                     Number(
-                        $('#sap').value ||
+                        $("#sap").value ||
                         0
                     ),
 
                 email:
-                    $('#semail').value,
+                    $("#semail").value,
 
                 phone:
-                    $('#sphone').value,
+                    $("#sphone").value,
 
                 address:
-                    $('#saddress').value,
+                    $("#saddress").value,
 
                 postal_code:
-                    $('#spostal').value,
+                    $("#spostal").value,
 
                 office_hours:
-                    $('#shours').value,
+                    $("#shours").value,
 
                 updated_at:
                     new Date()
                         .toISOString()
-
             };
 
-
             const result =
-
                 await sb
-
                     .from(
-                        'site_settings'
+                        "site_settings"
                     )
-
                     .upsert(
                         data,
                         {
                             onConflict:
-                                'id'
+                                "id"
                         }
                     );
-
 
             if (
                 result.error
             ) {
 
                 throw result.error;
-
             }
 
-
             toast(
-                'Pengaturan berhasil disimpan.'
+                "Pengaturan website berhasil disimpan."
             );
-
 
             await loadAll();
 
-
-        }
-
-        catch (error) {
+        } catch (error) {
 
             toast(
                 error.message,
-                'error'
+                "error"
             );
-
         }
-
     }
 
-
-    // ============================================================
-    // ADD ADMIN
-    // ============================================================
+    // =========================================================
+    // ADMIN MANAGEMENT
+    // =========================================================
 
     async function addAdmin(
-        e
+        event
     ) {
 
-        e.preventDefault();
-
+        event.preventDefault();
 
         try {
 
-
-            const {
-                data,
-                error
-            } =
-
+            const result =
                 await sb.rpc(
-                    'admin_add_by_email',
+                    "admin_add_by_email",
                     {
-
                         p_email:
-                            $('#aemail').value,
+                            $("#aemail").value,
 
                         p_name:
-                            $('#aname').value,
+                            $("#aname").value,
 
                         p_role:
-                            $('#arole').value
-
+                            $("#arole").value
                     }
                 );
 
+            if (
+                result.error
+            ) {
 
-            if (error) {
-
-                throw error;
-
+                throw result.error;
             }
 
-
             toast(
-                'Admin berhasil ditambahkan.'
+                "Admin berhasil ditambahkan."
             );
 
-
-            $('#adminAddForm')
+            $("#adminAddForm")
                 .reset();
-
 
             await loadAll();
 
-
-        }
-
-        catch (error) {
+        } catch (error) {
 
             toast(
                 error.message,
-                'error'
+                "error"
             );
-
         }
-
     }
-
-
-    // ============================================================
-    // REMOVE ADMIN
-    // ============================================================
 
     async function removeAdmin(
         email
@@ -3928,441 +2323,275 @@
 
         if (
             !confirm(
-                'Hapus hak Admin untuk ' +
+                "Hapus hak Admin untuk " +
                 email +
-                '?'
+                "?"
             )
         ) {
-
             return;
-
         }
-
 
         try {
 
-
-            const {
-                error
-            } =
-
+            const result =
                 await sb.rpc(
-                    'admin_remove_by_email',
+                    "admin_remove_by_email",
                     {
                         p_email:
                             email
                     }
                 );
 
+            if (
+                result.error
+            ) {
 
-            if (error) {
-
-                throw error;
-
+                throw result.error;
             }
 
-
             toast(
-                'Hak Admin dihapus.'
+                "Hak Admin berhasil dihapus."
             );
-
 
             await loadAll();
 
-
-        }
-
-        catch (error) {
+        } catch (error) {
 
             toast(
                 error.message,
-                'error'
+                "error"
             );
-
         }
-
     }
 
+    // =========================================================
+    // EVENTS
+    // =========================================================
 
-    // ============================================================
-    // NAVIGASI ADMIN
-    // ============================================================
+    $("#loginForm")
+        ?.addEventListener(
+            "submit",
+            async function (event) {
+
+                event.preventDefault();
+
+                $("#loginErr").textContent =
+                    "";
+
+                try {
+
+                    await client();
+
+                    const result =
+                        await sb.auth
+                            .signInWithPassword({
+                                email:
+                                    $("#email")
+                                        .value
+                                        .trim(),
+
+                                password:
+                                    $("#password")
+                                        .value
+                            });
+
+                    if (
+                        result.error
+                    ) {
+
+                        throw result.error;
+                    }
+
+                    await loadAll();
+
+                } catch (error) {
+
+                    $("#loginErr")
+                        .textContent =
+                        error.message;
+                }
+            }
+        );
+
+    $("#logout")
+        ?.addEventListener(
+            "click",
+            async function (event) {
+
+                event.preventDefault();
+
+                if (sb) {
+                    await sb.auth.signOut();
+                }
+
+                showLogin();
+            }
+        );
+
+    $("#settingsForm")
+        ?.addEventListener(
+            "submit",
+            saveSettings
+        );
+
+    $("#adminAddForm")
+        ?.addEventListener(
+            "submit",
+            addAdmin
+        );
+
+    $("#editorForm")
+        ?.addEventListener(
+            "submit",
+            saveEditor
+        );
+
+    $("#refresh")
+        ?.addEventListener(
+            "click",
+            loadAll
+        );
+
+    $("#reloadMessages")
+        ?.addEventListener(
+            "click",
+            loadAll
+        );
+
+    $("#menu")
+        ?.addEventListener(
+            "click",
+            () => {
+
+                $("#side")
+                    ?.classList
+                    .toggle("open");
+
+                if ($("#overlay")) {
+                    $("#overlay")
+                        .style
+                        .display = "block";
+                }
+            }
+        );
+
+    $("#overlay")
+        ?.addEventListener(
+            "click",
+            () => {
+
+                $("#side")
+                    ?.classList
+                    .remove("open");
+
+                $("#overlay")
+                    .style
+                    .display = "none";
+            }
+        );
 
     document
         .querySelectorAll(
-            '#nav a[data-target]'
+            "#nav a[data-target]"
         )
         .forEach(
             link => {
 
                 link.addEventListener(
-                    'click',
-                    function (event) {
+                    "click",
+                    () => {
 
-                        event.preventDefault();
-
-
-                        const target =
-                            link.dataset.target;
-
-
-                        // Hapus active
                         document
                             .querySelectorAll(
-                                '#nav a'
+                                "#nav a"
                             )
                             .forEach(
-                                item =>
-                                    item.classList
+                                x =>
+                                    x.classList
                                         .remove(
-                                            'active'
+                                            "active"
                                         )
                             );
 
+                        link.classList
+                            .add("active");
 
-                        // Active menu
-                        link.classList.add(
-                            'active'
-                        );
-
-
-                        // Sembunyikan SEMUA section
-                        document
-                            .querySelectorAll(
-                                '.admin-section'
-                            )
-                            .forEach(
-                                section => {
-
-                                    section.classList
-                                        .remove(
-                                            'active'
-                                        );
-
-                                }
-                            );
-
-
-                        // Tampilkan section yang dipilih
-                        const section =
-                            document.getElementById(
-                                target
-                            );
-
-
-                        if (section) {
-
-                            section.classList.add(
-                                'active'
-                            );
-
-
-                            window.scrollTo(
-                                {
-                                    top:0,
-
-                                    behavior:
-                                        'smooth'
-                                }
-                            );
-
-                        }
-
-
-                        // Mobile
                         if (
                             innerWidth < 901
                         ) {
 
-                            $('#side')
-                                .classList
+                            $("#side")
+                                ?.classList
                                 .remove(
-                                    'open'
+                                    "open"
                                 );
 
-
-                            $('#overlay')
+                            $("#overlay")
                                 .style
                                 .display =
-                                    'none';
-
+                                "none";
                         }
-
                     }
                 );
-
             }
         );
 
-
-    // ============================================================
-    // LOGIN
-    // ============================================================
-
-    $('#loginForm')
-        .addEventListener(
-            'submit',
-            async e => {
-
-                e.preventDefault();
-
-
-                $('#loginErr')
-                    .textContent =
-                    '';
-
-
-                try {
-
-
-                    await client();
-
-
-                    const {
-                        error
-                    } =
-
-                        await sb.auth
-                            .signInWithPassword(
-                                {
-
-                                    email:
-                                        $('#email')
-                                            .value
-                                            .trim(),
-
-                                    password:
-                                        $('#password')
-                                            .value
-
-                                }
-                            );
-
-
-                    if (error) {
-
-                        throw error;
-
-                    }
-
-
-                    await loadAll();
-
-
-                }
-
-                catch (error) {
-
-                    $('#loginErr')
-                        .textContent =
-                        error.message;
-
-                }
-
-            }
-        );
-
-
-    // ============================================================
-    // LOGOUT
-    // ============================================================
-
-    $('#logout')
-        .addEventListener(
-            'click',
-            async e => {
-
-                e.preventDefault();
-
-
-                if (sb) {
-
-                    await sb
-                        .auth
-                        .signOut();
-
-                }
-
-
-                showLogin();
-
-            }
-        );
-
-
-    // ============================================================
-    // SETTINGS EVENT
-    // ============================================================
-
-    $('#settingsForm')
-        .addEventListener(
-            'submit',
-            saveSettings
-        );
-
-
-    // ============================================================
-    // ADMIN EVENT
-    // ============================================================
-
-    $('#adminAddForm')
-        .addEventListener(
-            'submit',
-            addAdmin
-        );
-
-
-    // ============================================================
-    // EDITOR EVENT
-    // ============================================================
-
-    $('#editorForm')
-        .addEventListener(
-            'submit',
-            saveEditor
-        );
-
-
-    // ============================================================
-    // REFRESH
-    // ============================================================
-
-    $('#refresh')
-        .addEventListener(
-            'click',
-            loadAll
-        );
-
-
-    $('#reloadMessages')
-        .addEventListener(
-            'click',
-            loadAll
-        );
-
-
-    // ============================================================
-    // MOBILE MENU
-    // ============================================================
-
-    $('#menu')
-        .addEventListener(
-            'click',
-            () => {
-
-                $('#side')
-                    .classList
-                    .toggle(
-                        'open'
-                    );
-
-
-                $('#overlay')
-                    .style
-                    .display =
-                    'block';
-
-            }
-        );
-
-
-    $('#overlay')
-        .addEventListener(
-            'click',
-            () => {
-
-                $('#side')
-                    .classList
-                    .remove(
-                        'open'
-                    );
-
-
-                $('#overlay')
-                    .style
-                    .display =
-                    'none';
-
-            }
-        );
-
-
-    // ============================================================
-    // PUBLIC API
-    // ============================================================
+    // =========================================================
+    // GLOBAL
+    // =========================================================
 
     window.openEditor =
         openEditor;
 
-
     window.delRow =
         delRow;
-
 
     window.savePage =
         savePage;
 
-
     window.msgStatus =
         msgStatus;
-
 
     window.removeAdmin =
         removeAdmin;
 
-
-    // ============================================================
-    // AUTO LOGIN
-    // ============================================================
+    // =========================================================
+    // START
+    // =========================================================
 
     (async function () {
 
         if (!ready()) {
 
-            $('#configWarn')
-                .classList
-                .remove(
-                    'hidden'
-                );
+            $("#configWarn")
+                ?.classList
+                .remove("hidden");
 
             return;
-
         }
-
 
         try {
 
-
             await client();
 
-
-            const {
-                data
-            } =
+            const session =
                 await sb.auth
                     .getSession();
 
-
             if (
-                data.session
+                session.data.session
             ) {
 
                 await loadAll();
-
             }
 
-
-        }
-
-        catch (error) {
+        } catch (error) {
 
             console.error(
                 error
             );
-
         }
 
     })();
-
 
 })();
